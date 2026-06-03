@@ -11,8 +11,7 @@ Focus Orbit은 사용자의 작업 유형과 Mission Log를 기반으로 집중/
 | 프로젝트명 | Focus Orbit |
 | 주제 | 나만의 적응형 뽀모도로 타이머 |
 | 형태 | FE-only 웹 애플리케이션 |
-| 메인 저장소 | https://github.com/T5-OSS-TP/Focus-Orbit.git |
-| 프로토타입 저장소 | https://github.com/T5-OSS-TP/Focus-Orbit-PT.git |
+| 저장소 | https://github.com/dlrkawo/OSS-T5.git |
 | 주요 저장 방식 | `localStorage` |
 | 개발 방식 | `develop` 기반 feature branch workflow |
 
