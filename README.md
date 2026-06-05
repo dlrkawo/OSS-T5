@@ -10,9 +10,9 @@ Focus Orbit은 사용자의 작업 유형과 Mission Log를 기반으로 집중/
 | --- | --- |
 | 프로젝트명 | Focus Orbit |
 | 주제 | 나만의 적응형 뽀모도로 타이머 |
-| 형태 | FE-only 웹 애플리케이션 |
+| 형태 | FE + BE 웹 애플리케이션 |
 | 저장소 | https://github.com/dlrkawo/OSS-T5.git |
-| 주요 저장 방식 | `localStorage` |
+| 주요 저장 방식 | H2 File DB, `localStorage` |
 | 개발 방식 | `develop` 기반 feature branch workflow |
 
 ## 기술 스택
@@ -25,14 +25,16 @@ Focus Orbit은 사용자의 작업 유형과 Mission Log를 기반으로 집중/
 | 라우팅 | React Router |
 | 스타일 | Tailwind CSS |
 | 상태 관리 | React Context |
-| 데이터 저장 | localStorage |
-| 패키지 매니저 | Yarn |
+| BE | Spring Boot 3.5 + Java 21 |
+| DB | H2 File DB |
+| 컨테이너 | Docker Compose |
+| 패키지 매니저 | Yarn, Gradle Wrapper |
 
 ## 실행 방법
 
 ```bash
-git clone https://github.com/T5-OSS-TP/Focus-Orbit.git
-cd Focus-Orbit
+git clone https://github.com/dlrkawo/OSS-T5.git
+cd OSS-T5
 yarn
 yarn dev
 ```
@@ -47,6 +49,25 @@ yarn build
 
 ```bash
 yarn lint
+```
+
+BE 실행:
+
+```bash
+cd server
+./gradlew bootRun
+```
+
+Docker로 BE 실행:
+
+```bash
+docker compose up --build
+```
+
+Health 확인:
+
+```bash
+curl http://localhost:8080/api/health
 ```
 
 ## 핵심 기능
@@ -193,19 +214,20 @@ OSS-T5/
 │   └── index.css
 │
 ├── server/                 # BE 서버 코드
+│   ├── build.gradle
+│   ├── Dockerfile
 │   ├── src/
-│   │   ├── app.ts
-│   │   ├── server.ts
-│   │   ├── config/         # 환경 변수, 서버 설정
-│   │   ├── db/             # DB 연결 및 schema
-│   │   ├── models/         # 데이터 모델
-│   │   ├── repositories/   # DB 접근 로직
-│   │   ├── routes/         # API 라우터
-│   │   ├── controllers/    # 요청/응답 처리
-│   │   ├── services/       # 비즈니스 로직
-│   │   └── utils/          # 공통 유틸
-│   └── package.json
+│   │   ├── main/java/com/focusorbit/server/
+│   │   │   ├── config/         # CORS 등 서버 설정
+│   │   │   ├── controllers/    # 요청/응답 처리
+│   │   │   ├── db/             # 데모 사용자 등 DB 보조 값
+│   │   │   ├── models/         # JPA 엔티티
+│   │   │   └── repositories/   # Spring Data JPA repository
+│   │   └── main/resources/application.yml
+│   └── gradlew
 │
+├── docker-compose.yml      # BE Docker 실행
+├── .env.example            # BE 환경 변수 예시
 ├── public/                 # 정적 파일
 ├── README.md               # 프로젝트 소개, 실행 방법, 역할 분담
 ├── FEATURES.md             # 기능 상세 정리, 필요 시 유지
@@ -221,24 +243,32 @@ OSS-T5/
 
 | 파트 | 담당자 | 브랜치 | 담당 범위 | 주 담당 파일 |
 | --- | --- | --- | --- | --- |
-| Project Docs / 발표 총괄 | 이감재 | `docs/requirements-presentation` | 요구사항, 발표 흐름, 역할표, 발표 스크립트 | `docs/requirements-checklist.md`, `docs/concept.md`, `docs/final-presentation-script.md`, `docs/team-roles.md` |
-| Timer Core / Session Cycle | 한승준 | `feature/session-cycle-core` | 반복 세션 구조, 타이머 계산, 세션 진행 상태 | `src/domain/sessionCycle.ts`, `src/domain/timerUtils.ts`, `src/hooks/useCountdownTimer.ts`, `src/components/SessionProgressBadge.tsx` |
-| Adaptive Logic / Focus Score | 엄태용 | `feature/adaptive-core` | 추천 알고리즘, 집중 점수, 작업 유형별 기본값, 연구 근거 | `src/domain/adaptation.ts`, `src/domain/focusScore.ts`, `src/domain/taskTypes.ts`, `docs/adaptive-research.md` |
-| Notification / Minimal UX | 김성원 | `feature/notification-minimal-ux` | 알림, 탭 제목 타이머, 미니멀 화면, 시각 효과 감소 옵션 | `src/hooks/useNotification.ts`, `src/hooks/useBrowserTitleTimer.ts`, `src/components/MinimalTimerView.tsx`, `src/components/NotificationBanner.tsx` |
-| App Integration / Release Docs | 박찬건 | `feature/app-integration-release` | 페이지 연결, 전역 상태 통합, README, 데모 시나리오, 빌드 확인 | `src/pages/MissionSetup.tsx`, `src/pages/ActiveTimer.tsx`, `src/pages/RestStation.tsx`, `src/state/AppStateContext.tsx`, `src/domain/types.ts`, `README.md`, `FEATURES.md`, `docs/demo-scenario.md` |
+| UI Layout / FE UI Lead | 이감재 | `feature/ui-layout` | 전체 기획, UI 컨셉, 주요 페이지 레이아웃 | `src/index.css`, `src/layout/*`, `src/pages/*`, `docs/ui-direction.md` |
+| FE Logic / API Integration | FE 팀원 | `feature/fe-integration` | 타이머 동작, form 처리, 상태 관리, API 연동 | `src/api/*`, `src/hooks/*`, `src/state/*`, `src/pages/*` |
+| BE Core / Database | 박찬건 | `feature/be-core-database` | Spring Boot 서버 골격, H2 DB, JPA 모델, repository, Docker | `server/build.gradle`, `server/src/main/java/com/focusorbit/server/models/*`, `server/src/main/java/com/focusorbit/server/repositories/*`, `.env.example`, `docker-compose.yml` |
+| BE API / Recommendation | BE 팀원 | `feature/be-api-recommendation` | API 라우터, controller, service, 추천 알고리즘, 통계 응답 | `server/src/main/java/com/focusorbit/server/controllers/*`, `server/src/main/java/com/focusorbit/server/services/*`, `docs/api-spec.md` |
+| DevOps / QA / Docs / Demo | DevOps/QA 팀원 | `chore/release-docs-demo` | README, API 명세, 브랜치 전략, 실행 검증, 데모 시나리오 | `README.md`, `FEATURES.md`, `docs/api-spec.md`, `docs/branch-strategy.md`, `docs/demo-scenario.md` |
 
 ## 공통 파일 관리 규칙
 
-아래 파일은 충돌 가능성이 높기 때문에 App Integration 담당자가 주로 통합합니다.
+아래 파일은 충돌 가능성이 높으므로 수정 전에 팀 채팅에 먼저 공유합니다.
 
 ```txt
 src/pages/MissionSetup.tsx
 src/pages/ActiveTimer.tsx
 src/pages/RestStation.tsx
+src/pages/MissionLog.tsx
+src/pages/SettingsPage.tsx
 src/state/AppStateContext.tsx
 src/domain/types.ts
+server/src/db/*
+server/src/models/*
+server/src/services/*
+docs/api-spec.md
 README.md
 FEATURES.md
+package.json
+server/build.gradle
 ```
 
 다른 파트에서 위 파일 수정이 필요할 경우, 먼저 필요한 props, state, type을 공유한 뒤 최소 범위만 수정합니다.
@@ -275,34 +305,25 @@ FEATURES.md
 ```txt
 main
 develop
-docs/requirements-presentation
-feature/session-cycle-core
-feature/adaptive-core
-feature/notification-minimal-ux
-feature/app-integration-release
+feature/ui-layout
+feature/fe-integration
+feature/be-core-database
+feature/be-api-recommendation
+chore/release-docs-demo
 ```
-
-기존에 만들어둔 브랜치를 그대로 사용한다면 아래처럼 매칭합니다.
-
-| 기존 브랜치 | 새 역할 |
-| --- | --- |
-| `feature/session-cycle` | Timer Core / Session Cycle |
-| `feature/adaptive-recommendation` | Adaptive Logic / Focus Score |
-| `feature/minimal-notification-mode` | Notification / Minimal UX |
-| `chore/release-check` 또는 `docs/final-demo` | App Integration / Release Docs |
 
 ## 작업 흐름
 
 ```bash
 git switch develop
 git pull origin develop
-git switch -c feature/session-cycle-core
+git switch -c feature/be-core-database
 
 # 작업 후
 git status
-git add .
-git commit -m "feat(timer): implement session cycle core"
-git push -u origin feature/session-cycle-core
+git add server .env.example docker-compose.yml README.md
+git commit -m "feat(db): define backend core database"
+git push -u origin feature/be-core-database
 ```
 
 작업 완료 후 GitHub에서 `develop`을 대상으로 Pull Request를 생성합니다.
@@ -319,6 +340,8 @@ type(scope): summary
 feat(timer): implement focus and rest session cycle
 feat(adaptive): add focus score calculation
 feat(notification): show timer in browser title
+feat(db): define session and setting repositories
+feat(server): add health endpoint and dev cors config
 docs(readme): update final project overview
 chore(release): verify lint and build
 ```
