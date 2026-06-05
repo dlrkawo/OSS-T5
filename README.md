@@ -179,73 +179,39 @@ Focus Orbit에서 adaptiveness는 사용자의 작업 상황과 집중 기록에
 ## 프로젝트 구조
 
 ```txt
-Focus-Orbit/
-├── docs/
-│   ├── requirements-checklist.md
-│   ├── concept.md
-│   ├── adaptive-research.md
-│   ├── branch-strategy.md
-│   ├── demo-scenario.md
-│   └── final-presentation-script.md
-│
-├── public/
-│   ├── favicon.svg
-│   ├── icons.svg
-│   └── orbit-bg.png
-│
-├── src/
+OSS-T5/
+├── src/                    # FE React 코드
+│   ├── api/                # BE API 요청 함수
+│   ├── components/         # 공통 UI 컴포넌트
+│   ├── domain/             # 타이머, 추천, 세션 관련 FE 도메인 로직
+│   ├── hooks/              # 커스텀 훅
+│   ├── layout/             # 공통 레이아웃
+│   ├── pages/              # 페이지 컴포넌트
+│   ├── state/              # FE 전역 상태
 │   ├── App.tsx
 │   ├── main.tsx
-│   ├── index.css
-│   │
-│   ├── pages/
-│   │   ├── MissionSetup.tsx
-│   │   ├── ActiveTimer.tsx
-│   │   ├── RestStation.tsx
-│   │   ├── GalaxyMap.tsx
-│   │   ├── MissionLog.tsx
-│   │   └── SettingsPage.tsx
-│   │
-│   ├── components/
-│   │   ├── MissionOrbitTrack.tsx
-│   │   ├── ProceduralSpaceBackdrop.tsx
-│   │   ├── TimerControls.tsx
-│   │   ├── MinimalTimerView.tsx
-│   │   ├── SessionProgressBadge.tsx
-│   │   └── NotificationBanner.tsx
-│   │
-│   ├── domain/
-│   │   ├── types.ts
-│   │   ├── taskTypes.ts
-│   │   ├── timerUtils.ts
-│   │   ├── sessionCycle.ts
-│   │   ├── adaptation.ts
-│   │   ├── focusScore.ts
-│   │   ├── planets.ts
-│   │   └── routeFlavor.ts
-│   │
-│   ├── hooks/
-│   │   ├── useCountdownTimer.ts
-│   │   ├── useBrowserTitleTimer.ts
-│   │   └── useNotification.ts
-│   │
-│   ├── state/
-│   │   ├── AppStateContext.tsx
-│   │   └── storage.ts
-│   │
-│   ├── data/
-│   │   ├── trivia.ts
-│   │   └── restSuggestions.ts
-│   │
-│   └── layout/
-│       └── AppShell.tsx
+│   └── index.css
 │
-├── FEATURES.md
-├── README.md
-├── package.json
+├── server/                 # BE 서버 코드
+│   ├── src/
+│   │   ├── app.ts
+│   │   ├── server.ts
+│   │   ├── config/         # 환경 변수, 서버 설정
+│   │   ├── db/             # DB 연결 및 schema
+│   │   ├── models/         # 데이터 모델
+│   │   ├── repositories/   # DB 접근 로직
+│   │   ├── routes/         # API 라우터
+│   │   ├── controllers/    # 요청/응답 처리
+│   │   ├── services/       # 비즈니스 로직
+│   │   └── utils/          # 공통 유틸
+│   └── package.json
+│
+├── public/                 # 정적 파일
+├── README.md               # 프로젝트 소개, 실행 방법, 역할 분담
+├── FEATURES.md             # 기능 상세 정리, 필요 시 유지
+├── package.json            # FE 실행용 package.json
 ├── vite.config.ts
 ├── tsconfig.json
-├── eslint.config.js
 └── yarn.lock
 ```
 
