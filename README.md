@@ -2,7 +2,7 @@
 
 Focus Orbit은 사용자의 작업 유형과 Mission Log를 기반으로 집중/휴식 루틴을 조정하는 adaptive pomodoro timer입니다.
 
-기존 뽀모도로 타이머의 `25분 집중 / 5분 휴식` 고정 구조를 그대로 따르지 않고, 사용자의 작업 유형, 세션 완료 여부, 중단 횟수, 일시정지 횟수, 최근 집중 기록을 바탕으로 다음 집중 루틴을 추천합니다. 집중 세션은 우주 탐사 미션으로 표현되며, 사용자는 집중을 반복할수록 Mission Log와 Galaxy Map을 통해 자신의 집중 패턴과 성취를 확인할 수 있습니다.
+기존 뽀모도로 타이머의 고정된 `25분 집중 / 5분 휴식` 구조에서 확장하여, 사용자의 작업 유형, 세션 완료 여부, 중단 횟수, 일시정지 횟수, 최근 집중 기록을 바탕으로 다음 집중 루틴을 추천합니다. 집중 세션은 우주 탐사 미션으로 표현되며, 사용자는 Mission Log와 Galaxy Map을 통해 자신의 집중 패턴과 성취를 확인할 수 있습니다.
 
 ## 프로젝트 정보
 
@@ -10,29 +10,45 @@ Focus Orbit은 사용자의 작업 유형과 Mission Log를 기반으로 집중/
 | --- | --- |
 | 프로젝트명 | Focus Orbit |
 | 주제 | 나만의 적응형 뽀모도로 타이머 |
-| 형태 | FE-only 웹 애플리케이션 |
 | 저장소 | https://github.com/dlrkawo/OSS-T5.git |
-| 주요 저장 방식 | `localStorage` |
+| 구조 | FE와 BE를 하나의 레포지토리에서 함께 관리 |
+| FE | React, TypeScript, Vite |
+| BE | `server/` 폴더에서 구현 |
 | 개발 방식 | `develop` 기반 feature branch workflow |
 
 ## 기술 스택
 
 | 영역 | 기술 |
 | --- | --- |
-| UI | React 19 |
-| 언어 | TypeScript |
-| 빌드 | Vite |
-| 라우팅 | React Router |
-| 스타일 | Tailwind CSS |
-| 상태 관리 | React Context |
-| 데이터 저장 | localStorage |
-| 패키지 매니저 | Yarn |
+| FE UI | React |
+| FE 언어 | TypeScript |
+| FE 빌드 | Vite |
+| FE 라우팅 | React Router |
+| FE 스타일 | Tailwind CSS |
+| BE | Node.js 기반 서버 |
+| 데이터 저장 | DB 또는 데모용 저장소 |
+| 패키지 매니저 | Yarn 또는 npm |
 
 ## 실행 방법
 
+저장소 clone:
+
 ```bash
-git clone https://github.com/T5-OSS-TP/Focus-Orbit.git
-cd Focus-Orbit
+git clone https://github.com/dlrkawo/OSS-T5.git
+cd OSS-T5
+```
+
+FE 실행:
+
+```bash
+yarn
+yarn dev
+```
+
+BE 실행 예시:
+
+```bash
+cd server
 yarn
 yarn dev
 ```
@@ -58,8 +74,8 @@ yarn lint
 - 작업 이름 입력
 - 작업 유형 선택
 - 집중 시간과 휴식 시간 설정
-- Mission Log 기반 추천 루틴 표시
 - 목표 세션 수 설정
+- Mission Log 기반 추천 루틴 표시
 - 미션 시작
 
 ### 2. Active Timer
@@ -75,7 +91,7 @@ yarn lint
 
 ### 3. Session Cycle
 
-기존 프로토타입의 `focus -> break -> setup` 흐름을 최종 프로젝트에서는 `focus -> break -> next focus` 흐름으로 확장합니다.
+`focus -> break -> setup` 흐름을 `focus -> break -> next focus` 흐름으로 확장합니다.
 
 - 1뽀모, 2뽀모처럼 반복되는 세션 관리
 - 사용자가 목표 세션 수 설정
@@ -97,7 +113,7 @@ isLongBreak: boolean
 집중 세션 후 휴식을 진행하는 화면입니다.
 
 - 휴식 카운트다운
-- 짧은 회복 행동 또는 휴식 콘텐츠 추천
+- 회복 행동 또는 휴식 콘텐츠 추천
 - 휴식 종료 후 다음 집중으로 이동
 - 긴 휴식 여부 표시
 
@@ -138,7 +154,7 @@ isLongBreak: boolean
 
 Focus Orbit에서 adaptiveness는 사용자의 작업 상황과 집중 기록에 따라 타이머와 인터페이스가 변화하는 성질을 의미합니다.
 
-이 프로젝트의 적응성은 다음 세 가지 방식으로 구현됩니다.
+이 프로젝트의 적응성은 다음 세 가지 방식으로 구현합니다.
 
 1. 작업 유형 기반 적응
    - 코딩, 암기, 글쓰기, 시험 공부 등 작업 유형별 기본 집중/휴식 시간을 다르게 설정합니다.
@@ -169,12 +185,6 @@ Focus Orbit에서 adaptiveness는 사용자의 작업 상황과 집중 기록에
 - 일시정지 횟수
 - 작업 유형별 성공 패턴
 - 최근 집중 피로도
-
-설명 방향:
-
-- 짧은 휴식은 지속적 주의 저하를 줄이는 데 도움이 될 수 있습니다.
-- micro-break는 피로 감소와 활력 회복에 도움을 줄 수 있습니다.
-- 단, 모든 사용자에게 같은 시간이 최적인 것은 아니므로 Focus Orbit은 고정 시간을 강제하지 않고 개인 기록에 따라 조정합니다.
 
 ## 프로젝트 구조
 
@@ -217,31 +227,33 @@ OSS-T5/
 
 ## 역할 분담
 
-충돌을 줄이기 위해 화면 단위가 아니라 모듈 책임 단위로 역할을 나눕니다.
+| 인원 | 역할 | 담당 범위 | 추천 브랜치 |
+| --- | --- | --- | --- |
+| 이감재 | 팀장 / 기획 / UI 디자인 / FE UI Lead | 전체 기획, 사용자 흐름, 전체 UI 컨셉, 디자인 방향, 주요 페이지 레이아웃, 발표 흐름 | `feature/ui-layout` |
+| FE 팀원 | FE Logic / API Integration | 타이머 동작, form 처리, 상태 관리, API 연동, loading/error 처리, 데이터 표시 | `feature/fe-integration` |
+| BE 팀원 1 | BE Core / Database | `server/` 세팅, DB 설계, 모델, DB 연결, repository, `.env.example` | `feature/be-core-database` |
+| BE 팀원 2 | BE API / Recommendation | API 라우터, controller, service, 추천 알고리즘, 집중 점수, 통계 응답 | `feature/be-api-recommendation` |
+| DevOps/QA 팀원 | DevOps / QA / Docs / Demo | README, 실행 검증, API 명세, 테스트, 데모 데이터, 발표 시나리오, 최종 빌드 확인 | `chore/release-docs-demo` |
 
-| 파트 | 담당자 | 브랜치 | 담당 범위 | 주 담당 파일 |
-| --- | --- | --- | --- | --- |
-| Project Docs / 발표 총괄 | 이감재 | `docs/requirements-presentation` | 요구사항, 발표 흐름, 역할표, 발표 스크립트 | `docs/requirements-checklist.md`, `docs/concept.md`, `docs/final-presentation-script.md`, `docs/team-roles.md` |
-| Timer Core / Session Cycle | 한승준 | `feature/session-cycle-core` | 반복 세션 구조, 타이머 계산, 세션 진행 상태 | `src/domain/sessionCycle.ts`, `src/domain/timerUtils.ts`, `src/hooks/useCountdownTimer.ts`, `src/components/SessionProgressBadge.tsx` |
-| Adaptive Logic / Focus Score | 엄태용 | `feature/adaptive-core` | 추천 알고리즘, 집중 점수, 작업 유형별 기본값, 연구 근거 | `src/domain/adaptation.ts`, `src/domain/focusScore.ts`, `src/domain/taskTypes.ts`, `docs/adaptive-research.md` |
-| Notification / Minimal UX | 김성원 | `feature/notification-minimal-ux` | 알림, 탭 제목 타이머, 미니멀 화면, 시각 효과 감소 옵션 | `src/hooks/useNotification.ts`, `src/hooks/useBrowserTitleTimer.ts`, `src/components/MinimalTimerView.tsx`, `src/components/NotificationBanner.tsx` |
-| App Integration / Release Docs | 박찬건 | `feature/app-integration-release` | 페이지 연결, 전역 상태 통합, README, 데모 시나리오, 빌드 확인 | `src/pages/MissionSetup.tsx`, `src/pages/ActiveTimer.tsx`, `src/pages/RestStation.tsx`, `src/state/AppStateContext.tsx`, `src/domain/types.ts`, `README.md`, `FEATURES.md`, `docs/demo-scenario.md` |
+## API 범위
 
-## 공통 파일 관리 규칙
-
-아래 파일은 충돌 가능성이 높기 때문에 App Integration 담당자가 주로 통합합니다.
+최종 프로젝트에서 BE는 아래 API를 우선 구현합니다.
 
 ```txt
-src/pages/MissionSetup.tsx
-src/pages/ActiveTimer.tsx
-src/pages/RestStation.tsx
-src/state/AppStateContext.tsx
-src/domain/types.ts
-README.md
-FEATURES.md
+GET    /api/health
+POST   /api/sessions
+GET    /api/sessions
+GET    /api/recommendations?taskType=coding
+GET    /api/stats
+GET    /api/settings
+PATCH  /api/settings
 ```
 
-다른 파트에서 위 파일 수정이 필요할 경우, 먼저 필요한 props, state, type을 공유한 뒤 최소 범위만 수정합니다.
+로그인/회원가입은 우선 제외하고 데모용 `userId`를 사용합니다.
+
+```txt
+userId: "demo-user"
+```
 
 ## Git 브랜치 전략
 
@@ -260,49 +272,36 @@ FEATURES.md
 ### feature/*
 
 - 기능 개발용 브랜치입니다.
-- 타이머, 추천 알고리즘, 알림, 통합 작업 등에 사용합니다.
-
-### docs/*
-
-- README, 발표 자료, 요구사항 체크리스트, 조사 문서 등 문서 작업에 사용합니다.
+- UI, FE 연동, BE 기능 구현 등에 사용합니다.
 
 ### chore/*
 
-- 빌드, 린트, 패키지, 릴리즈 체크 등 운영 작업에 사용합니다.
+- 빌드, 린트, 패키지, 릴리즈 체크, 문서 정리 등에 사용합니다.
 
-## 현재 권장 브랜치
+## 권장 브랜치
 
 ```txt
 main
 develop
-docs/requirements-presentation
-feature/session-cycle-core
-feature/adaptive-core
-feature/notification-minimal-ux
-feature/app-integration-release
+feature/ui-layout
+feature/fe-integration
+feature/be-core-database
+feature/be-api-recommendation
+chore/release-docs-demo
 ```
-
-기존에 만들어둔 브랜치를 그대로 사용한다면 아래처럼 매칭합니다.
-
-| 기존 브랜치 | 새 역할 |
-| --- | --- |
-| `feature/session-cycle` | Timer Core / Session Cycle |
-| `feature/adaptive-recommendation` | Adaptive Logic / Focus Score |
-| `feature/minimal-notification-mode` | Notification / Minimal UX |
-| `chore/release-check` 또는 `docs/final-demo` | App Integration / Release Docs |
 
 ## 작업 흐름
 
 ```bash
 git switch develop
 git pull origin develop
-git switch -c feature/session-cycle-core
+git switch -c feature/ui-layout
 
 # 작업 후
 git status
 git add .
-git commit -m "feat(timer): implement session cycle core"
-git push -u origin feature/session-cycle-core
+git commit -m "feat(ui): add main layout"
+git push -u origin feature/ui-layout
 ```
 
 작업 완료 후 GitHub에서 `develop`을 대상으로 Pull Request를 생성합니다.
@@ -316,10 +315,11 @@ type(scope): summary
 예시:
 
 ```txt
-feat(timer): implement focus and rest session cycle
-feat(adaptive): add focus score calculation
-feat(notification): show timer in browser title
-docs(readme): update final project overview
+feat(ui): add mission setup layout
+feat(timer): implement countdown hook
+feat(api): add session create endpoint
+feat(db): define session schema
+docs(readme): update project structure
 chore(release): verify lint and build
 ```
 
