@@ -13,7 +13,8 @@ Focus Orbit은 사용자의 작업 유형과 Mission Log를 기반으로 집중/
 | 저장소 | https://github.com/dlrkawo/OSS-T5.git |
 | 구조 | FE와 BE를 하나의 레포지토리에서 함께 관리 |
 | FE | React, TypeScript, Vite |
-| BE | `server/` 폴더에서 구현 |
+| BE | Spring Boot 3.5, Java 21 |
+| DB | H2 File DB |
 | 개발 방식 | `develop` 기반 feature branch workflow |
 
 ## 기술 스택
@@ -25,9 +26,11 @@ Focus Orbit은 사용자의 작업 유형과 Mission Log를 기반으로 집중/
 | FE 빌드 | Vite |
 | FE 라우팅 | React Router |
 | FE 스타일 | Tailwind CSS |
-| BE | Node.js 기반 서버 |
-| 데이터 저장 | DB 또는 데모용 저장소 |
-| 패키지 매니저 | Yarn 또는 npm |
+| FE 상태 관리 | React Context |
+| BE | Spring Boot 3.5 + Java 21 |
+| DB | H2 File DB |
+| 컨테이너 | Docker Compose |
+| 패키지 매니저 | Yarn, Gradle Wrapper |
 
 ## 실행 방법
 
@@ -45,24 +48,37 @@ yarn
 yarn dev
 ```
 
-BE 실행 예시:
-
-```bash
-cd server
-yarn
-yarn dev
-```
-
-빌드 확인:
+FE 빌드와 린트:
 
 ```bash
 yarn build
+yarn lint
 ```
 
-린트 확인:
+BE 실행:
 
 ```bash
-yarn lint
+cd server
+./gradlew bootRun
+```
+
+BE 테스트:
+
+```bash
+cd server
+./gradlew test
+```
+
+Docker로 BE 실행:
+
+```bash
+docker compose up --build
+```
+
+Health 확인:
+
+```bash
+curl http://localhost:8080/api/health
 ```
 
 ## 핵심 기능
@@ -203,19 +219,20 @@ OSS-T5/
 │   └── index.css
 │
 ├── server/                 # BE 서버 코드
+│   ├── build.gradle
+│   ├── Dockerfile
 │   ├── src/
-│   │   ├── app.ts
-│   │   ├── server.ts
-│   │   ├── config/         # 환경 변수, 서버 설정
-│   │   ├── db/             # DB 연결 및 schema
-│   │   ├── models/         # 데이터 모델
-│   │   ├── repositories/   # DB 접근 로직
-│   │   ├── routes/         # API 라우터
-│   │   ├── controllers/    # 요청/응답 처리
-│   │   ├── services/       # 비즈니스 로직
-│   │   └── utils/          # 공통 유틸
-│   └── package.json
+│   │   ├── main/java/com/focusorbit/server/
+│   │   │   ├── config/         # CORS 등 서버 설정
+│   │   │   ├── controllers/    # 요청/응답 처리
+│   │   │   ├── db/             # 데모 사용자 등 DB 보조 값
+│   │   │   ├── models/         # JPA 엔티티
+│   │   │   └── repositories/   # Spring Data JPA repository
+│   │   └── main/resources/application.yml
+│   └── gradlew
 │
+├── docker-compose.yml      # BE Docker 실행
+├── .env.example            # BE 환경 변수 예시
 ├── public/                 # 정적 파일
 ├── README.md               # 프로젝트 소개, 실행 방법, 역할 분담
 ├── FEATURES.md             # 기능 상세 정리, 필요 시 유지
@@ -231,7 +248,7 @@ OSS-T5/
 | --- | --- | --- | --- |
 | 이감재 | 팀장 / 기획 / UI 디자인 / FE UI Lead | 전체 기획, 사용자 흐름, 전체 UI 컨셉, 디자인 방향, 주요 페이지 레이아웃, 발표 흐름 | `feature/ui-layout` |
 | FE 팀원 | FE Logic / API Integration | 타이머 동작, form 처리, 상태 관리, API 연동, loading/error 처리, 데이터 표시 | `feature/fe-integration` |
-| BE 팀원 1 | BE Core / Database | `server/` 세팅, DB 설계, 모델, DB 연결, repository, `.env.example` | `feature/be-core-database` |
+| 박찬건 | BE Core / Database | `server/` 세팅, DB 설계, 모델, DB 연결, repository, `.env.example`, Docker | `feature/be-core-database` |
 | BE 팀원 2 | BE API / Recommendation | API 라우터, controller, service, 추천 알고리즘, 집중 점수, 통계 응답 | `feature/be-api-recommendation` |
 | DevOps/QA 팀원 | DevOps / QA / Docs / Demo | README, 실행 검증, API 명세, 테스트, 데모 데이터, 발표 시나리오, 최종 빌드 확인 | `chore/release-docs-demo` |
 
@@ -253,6 +270,28 @@ PATCH  /api/settings
 
 ```txt
 userId: "demo-user"
+```
+
+## 공통 파일 관리 규칙
+
+아래 파일은 충돌 가능성이 높으므로 수정 전에 팀 채팅에 먼저 공유합니다.
+
+```txt
+src/pages/MissionSetup.tsx
+src/pages/ActiveTimer.tsx
+src/pages/RestStation.tsx
+src/pages/MissionLog.tsx
+src/pages/SettingsPage.tsx
+src/state/*
+src/domain/*
+server/src/db/*
+server/src/models/*
+server/src/services/*
+docs/api-spec.md
+README.md
+FEATURES.md
+package.json
+server/build.gradle
 ```
 
 ## Git 브랜치 전략
@@ -295,13 +334,13 @@ chore/release-docs-demo
 ```bash
 git switch develop
 git pull origin develop
-git switch -c feature/ui-layout
+git switch -c feature/be-core-database
 
 # 작업 후
 git status
-git add .
-git commit -m "feat(ui): add main layout"
-git push -u origin feature/ui-layout
+git add server .env.example docker-compose.yml README.md
+git commit -m "feat(db): define backend core database"
+git push -u origin feature/be-core-database
 ```
 
 작업 완료 후 GitHub에서 `develop`을 대상으로 Pull Request를 생성합니다.
@@ -319,6 +358,7 @@ feat(ui): add mission setup layout
 feat(timer): implement countdown hook
 feat(api): add session create endpoint
 feat(db): define session schema
+feat(server): add health endpoint and dev cors config
 docs(readme): update project structure
 chore(release): verify lint and build
 ```
