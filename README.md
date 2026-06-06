@@ -249,7 +249,7 @@ OSS-T5/
 | 이감재 | 팀장 / 기획 / UI 디자인 / FE UI Lead | 전체 기획, 사용자 흐름, 전체 UI 컨셉, 디자인 방향, 주요 페이지 레이아웃, 발표 흐름 | `feature/ui-layout` |
 | FE 팀원 | FE Logic / API Integration | 타이머 동작, form 처리, 상태 관리, API 연동, loading/error 처리, 데이터 표시 | `feature/fe-integration` |
 | 박찬건 | BE Core / Database | `server/` 세팅, DB 설계, 모델, DB 연결, repository, `.env.example`, Docker | `feature/be-core-database` |
-| BE 팀원 2 | BE API / Recommendation | API 라우터, controller, service, 추천 알고리즘, 집중 점수, 통계 응답 | `feature/be-api-recommendation` |
+| 한승준 | BE API / Recommendation | API 라우터, controller, service, 추천 알고리즘, 집중 점수, 통계 응답 | `feature/be-api-recommendation` |
 | DevOps/QA 팀원 | DevOps / QA / Docs / Demo | README, 실행 검증, API 명세, 테스트, 데모 데이터, 발표 시나리오, 최종 빌드 확인 | `chore/release-docs-demo` |
 
 ## API 범위
