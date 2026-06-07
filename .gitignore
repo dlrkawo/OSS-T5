@@ -1,2 +1,5 @@
 .env
 server/data/
+front/node_modules/
+front/dist/
+front/.vite/
