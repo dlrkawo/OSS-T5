@@ -672,6 +672,17 @@ button {
   gap: 10px;
 }
 
+.control-note {
+  position: relative;
+  z-index: 5;
+  max-width: 520px;
+  margin: 12px auto 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+}
+
 .rest-card {
   position: relative;
   display: grid;

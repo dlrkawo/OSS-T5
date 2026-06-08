@@ -10,6 +10,28 @@ import { useAppState } from '../state/AppStateContext'
 const DEFAULT_FOCUS_MIN = 25
 const DEFAULT_BREAK_MIN = 5
 
+function recommendationReasonKo(reason?: string): string {
+  if (!reason) return '최근 기록을 바탕으로 추천 루틴을 계산했습니다.'
+  if (reason.startsWith('Base preset for')) return '작업 유형의 기본 루틴을 기준으로 계산했습니다.'
+  if (reason === 'Custom mission preset') return '사용자 설정 미션의 기록을 기준으로 계산했습니다.'
+  if (reason === 'No mission log yet, so the default rhythm is used') {
+    return '아직 기록이 없어 기본 루틴을 사용합니다.'
+  }
+  if (reason === 'Recent completion rate is low, so focus is shortened') {
+    return '최근 완료율이 낮아 집중 시간을 줄였습니다.'
+  }
+  if (reason === 'Recent pause count is high, so break time is increased') {
+    return '최근 일시정지가 많아 휴식 시간을 늘렸습니다.'
+  }
+  if (reason === 'Recent sessions are stable, so focus is extended slightly') {
+    return '최근 세션이 안정적이라 집중 시간을 조금 늘렸습니다.'
+  }
+  if (reason === 'Recent pattern is balanced, so the base rhythm is kept') {
+    return '최근 패턴이 안정적이라 현재 루틴을 유지합니다.'
+  }
+  return reason
+}
+
 export function MissionSetup() {
   const navigate = useNavigate()
   const { addMissionPreset, missionPresets, startMission } = useAppState()
@@ -108,7 +130,7 @@ export function MissionSetup() {
   return (
     <section className="page setup-page">
       <header className="page-header">
-        <p className="eyebrow">Mission Setup</p>
+        <p className="eyebrow">미션 설정</p>
         <h1>저장한 작업을 선택해 집중 미션을 시작합니다.</h1>
         <p>
           작업을 직접 추가하고 집중/휴식 시간을 저장한 뒤, 저장된 작업을 선택해
@@ -144,7 +166,7 @@ export function MissionSetup() {
                 type="button"
               >
                 <strong>{preset.name}</strong>
-                <span>Custom Mission</span>
+                <span>사용자 설정 미션</span>
                 <small>
                   {preset.focusMin}분 집중 / {preset.breakMin}분 휴식
                 </small>
@@ -216,7 +238,7 @@ export function MissionSetup() {
           </div>
 
           <div className="mission-preview">
-            <span>{isCreating ? 'New Custom Mission' : 'Selected Mission'}</span>
+            <span>{isCreating ? '새 미션' : '선택한 미션'}</span>
             <strong>
               {taskName.trim() || '새 작업'} · {focusMin}분 집중 / {breakMin}분 휴식
             </strong>
@@ -231,13 +253,13 @@ export function MissionSetup() {
             <div className="recommendation-panel">
               <div className="recommendation-header">
                 <div>
-                  <span>Adaptive routine</span>
+                  <span>추천 루틴</span>
                   <strong>
                     {recommendation
-                      ? `${recommendation.focusMinutes} min focus / ${recommendation.breakMinutes} min break`
+                      ? `${recommendation.focusMinutes}분 집중 / ${recommendation.breakMinutes}분 휴식`
                       : recommendationError
-                        ? 'Mission Log unavailable'
-                        : 'Reading Mission Log'}
+                        ? '추천을 불러올 수 없음'
+                        : '기록 확인 중'}
                   </strong>
                 </div>
                 <button
@@ -246,7 +268,7 @@ export function MissionSetup() {
                   onClick={handleApplyRecommendation}
                   type="button"
                 >
-                  {isRecommendationApplied ? 'Applied' : 'Apply'}
+                  {isRecommendationApplied ? '적용됨' : '적용'}
                 </button>
               </div>
 
@@ -254,25 +276,27 @@ export function MissionSetup() {
                 <>
                   <div className="recommendation-metrics">
                     <div>
-                      <span>Score</span>
+                      <span>집중 점수</span>
                       <strong>{recommendation.focusScore}</strong>
                     </div>
                     <div>
-                      <span>Recent</span>
+                      <span>최근 기록</span>
                       <strong>{recommendation.recentSessionCount}</strong>
                     </div>
                     <div>
-                      <span>Complete</span>
+                      <span>완료율</span>
                       <strong>{Math.round(recommendation.completionRate * 100)}%</strong>
                     </div>
                   </div>
-                  <p className="recommendation-reason">{recommendation.reasons.at(-1)}</p>
+                  <p className="recommendation-reason">
+                    {recommendationReasonKo(recommendation.reasons.at(-1))}
+                  </p>
                 </>
               ) : (
                 <p className="recommendation-reason">
                   {recommendationError
-                    ? 'Backend recommendation is offline, so the saved rhythm stays selected.'
-                    : 'Select a mission to load recent-session guidance.'}
+                    ? '추천 서버에 연결할 수 없어 저장된 루틴을 그대로 사용합니다.'
+                    : '미션을 선택하면 최근 기록을 바탕으로 추천을 불러옵니다.'}
                 </p>
               )}
             </div>
