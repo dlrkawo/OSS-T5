@@ -55,6 +55,7 @@ public class Setting {
 
 	public Setting(String userId) {
 		this.userId = userId;
+		this.showTimerInTitle = true;
 	}
 
 	@PrePersist

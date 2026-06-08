@@ -97,14 +97,24 @@ Assert-True ($stats.totalSessions -ge 1) "GET /stats returns totalSessions"
 Assert-True ($stats.completedSessions -ge 1) "GET /stats returns completedSessions"
 Assert-True ($stats.totalFocusMinutes -ge 40) "GET /stats returns accumulated focus minutes"
 
-$invalidStatus = $null
-try {
-  Invoke-Api -Method "GET" -Path "/recommendations?taskType=unknown&userId=$UserId" | Out-Null
-  $invalidStatus = 200
-} catch {
-  $invalidStatus = [int]$_.Exception.Response.StatusCode
+$customTaskType = "custom-review"
+$customSession = Invoke-Api -Method "POST" -Path "/sessions" -Body @{
+  userId = $UserId
+  taskName = "Custom review mission"
+  taskType = $customTaskType
+  plannedFocusMinutes = 30
+  plannedBreakMinutes = 7
+  cycleId = $cycleId + "-custom"
+  cycleIndex = 1
+  totalCycles = 2
+  longBreak = $false
+  outcome = "completed"
+  pauseCount = 0
 }
-Assert-True ($invalidStatus -eq 400) "Invalid taskType returns HTTP 400"
+Assert-True ($customSession.taskType -eq $customTaskType) "POST /sessions accepts custom taskType"
+
+$customRecommendation = Invoke-Api -Method "GET" -Path "/recommendations?taskType=$customTaskType&userId=$UserId"
+Assert-True ($customRecommendation.taskType -eq $customTaskType) "GET /recommendations returns custom taskType"
 
 Write-Host ""
 Write-Host "Smoke check completed successfully."

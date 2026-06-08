@@ -10,7 +10,6 @@ import com.focusorbit.server.dto.SessionCreateRequest;
 import com.focusorbit.server.dto.SessionResponse;
 import com.focusorbit.server.models.Session;
 import com.focusorbit.server.models.SessionOutcome;
-import com.focusorbit.server.models.TaskType;
 import com.focusorbit.server.repositories.SessionRepository;
 
 @Service
@@ -23,7 +22,7 @@ public class SessionService {
 	}
 
 	public SessionResponse create(SessionCreateRequest request) {
-		TaskType taskType = ApiValueParser.parseTaskType(request.taskType());
+		String taskType = ApiValueParser.normalizeTaskType(request.taskType());
 		SessionOutcome outcome = ApiValueParser.parseOutcome(request.outcome());
 		Session session = new Session(
 			normalizeUserId(request.userId()),
@@ -60,7 +59,7 @@ public class SessionService {
 			session.getId(),
 			session.getUserId(),
 			session.getTaskName(),
-			ApiValueParser.toApiValue(session.getTaskType()),
+			session.getTaskType(),
 			session.getPlannedFocusMinutes(),
 			session.getPlannedBreakMinutes(),
 			session.getCycleId(),

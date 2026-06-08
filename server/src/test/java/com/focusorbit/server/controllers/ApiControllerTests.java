@@ -111,7 +111,7 @@ class ApiControllerTests {
 	}
 
 	@Test
-	void returnsValidationErrors() throws Exception {
+	void returnsValidationErrorsAndAcceptsCustomTaskType() throws Exception {
 		mockMvc.perform(post("/api/sessions")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content("""
@@ -124,6 +124,19 @@ class ApiControllerTests {
 					"""))
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.message").value("Invalid request"));
+
+		mockMvc.perform(post("/api/sessions")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+					{
+					  "taskName": "Custom focus",
+					  "taskType": "자료구조 복습",
+					  "plannedFocusMinutes": 30,
+					  "plannedBreakMinutes": 7
+					}
+					"""))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.taskType").value("자료구조 복습"));
 	}
 
 	private void createSession(String outcome, int pauseCount) throws Exception {

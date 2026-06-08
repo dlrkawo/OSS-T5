@@ -13,7 +13,6 @@ import com.focusorbit.server.db.DemoUser;
 import com.focusorbit.server.models.Session;
 import com.focusorbit.server.models.SessionOutcome;
 import com.focusorbit.server.models.Setting;
-import com.focusorbit.server.models.TaskType;
 
 @ActiveProfiles("test")
 @DataJpaTest
@@ -31,7 +30,7 @@ class RepositoryTests {
 		Session older = new Session(
 			DemoUser.ID,
 			"Older mission",
-			TaskType.CODING,
+			"coding",
 			40,
 			10,
 			SessionOutcome.COMPLETED,
@@ -40,7 +39,7 @@ class RepositoryTests {
 		Session newer = new Session(
 			DemoUser.ID,
 			"Newer mission",
-			TaskType.WRITING,
+			"writing",
 			30,
 			7,
 			SessionOutcome.ABORTED,
@@ -62,7 +61,7 @@ class RepositoryTests {
 			sessionRepository.save(new Session(
 				DemoUser.ID,
 				"Coding " + i,
-				TaskType.CODING,
+				"coding",
 				40,
 				10,
 				SessionOutcome.COMPLETED,
@@ -72,7 +71,7 @@ class RepositoryTests {
 		sessionRepository.save(new Session(
 			DemoUser.ID,
 			"Writing",
-			TaskType.WRITING,
+			"writing",
 			30,
 			7,
 			SessionOutcome.COMPLETED,
@@ -81,9 +80,9 @@ class RepositoryTests {
 
 		assertThat(sessionRepository.findTop5ByUserIdAndTaskTypeOrderByStartedAtDesc(
 			DemoUser.ID,
-			TaskType.CODING
+			"coding"
 		)).hasSize(5)
-			.allMatch(session -> session.getTaskType() == TaskType.CODING);
+			.allMatch(session -> session.getTaskType().equals("coding"));
 	}
 
 	@Test

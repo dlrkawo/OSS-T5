@@ -8,36 +8,7 @@ export interface TaskTypeMeta {
   defaultBreakMin: number
 }
 
-export const TASK_TYPES: TaskTypeMeta[] = [
-  {
-    type: 'coding',
-    labelKo: '코딩',
-    missionLabel: 'Deep Space Mission',
-    defaultFocusMin: 40,
-    defaultBreakMin: 10,
-  },
-  {
-    type: 'memorization',
-    labelKo: '암기',
-    missionLabel: 'Short Orbit Mission',
-    defaultFocusMin: 20,
-    defaultBreakMin: 5,
-  },
-  {
-    type: 'writing',
-    labelKo: '글쓰기',
-    missionLabel: 'Creative Mission',
-    defaultFocusMin: 30,
-    defaultBreakMin: 7,
-  },
-  {
-    type: 'exam',
-    labelKo: '시험공부',
-    missionLabel: 'Standard Mission',
-    defaultFocusMin: 25,
-    defaultBreakMin: 5,
-  },
-]
+export const TASK_TYPES: TaskTypeMeta[] = []
 
 const byType = Object.fromEntries(TASK_TYPES.map((item) => [item.type, item])) as Record<
   TaskType,
@@ -45,7 +16,15 @@ const byType = Object.fromEntries(TASK_TYPES.map((item) => [item.type, item])) a
 >
 
 export function getTaskMeta(type: TaskType): TaskTypeMeta {
-  return byType[type]
+  return (
+    byType[type] ?? {
+      type,
+      labelKo: '사용자 설정',
+      missionLabel: 'Custom Mission',
+      defaultFocusMin: 25,
+      defaultBreakMin: 5,
+    }
+  )
 }
 
 export function getDefaultRoutine(taskType: TaskType) {

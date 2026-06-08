@@ -1,25 +1,19 @@
 package com.focusorbit.server.services;
 
-import java.util.Arrays;
 import java.util.Locale;
 
 import com.focusorbit.server.models.SessionOutcome;
-import com.focusorbit.server.models.TaskType;
 
 final class ApiValueParser {
 
 	private ApiValueParser() {
 	}
 
-	static TaskType parseTaskType(String value) {
+	static String normalizeTaskType(String value) {
 		if (value == null || value.isBlank()) {
 			throw new IllegalArgumentException("taskType is required");
 		}
-		try {
-			return TaskType.valueOf(value.trim().replace('-', '_').toUpperCase(Locale.ROOT));
-		} catch (IllegalArgumentException exception) {
-			throw new IllegalArgumentException("taskType must be one of " + Arrays.toString(TaskType.values()));
-		}
+		return value.trim().replace('_', '-').toLowerCase(Locale.ROOT);
 	}
 
 	static SessionOutcome parseOutcome(String value) {

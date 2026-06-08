@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { pickTrivia } from '../data/trivia'
+import { notifyTimerEvent } from '../domain/alerts'
 import { effectiveCountdownSeconds, formatClock } from '../domain/timerUtils'
 import type { ActiveMission } from '../domain/types'
 import { useAppState } from '../state/AppStateContext'
@@ -37,7 +38,14 @@ function RestStationRunner({
   restState: RestRouteState | null
 }) {
   const navigate = useNavigate()
-  const { demoShortSessions, updateActiveMission } = useAppState()
+  const {
+    demoShortSessions,
+    desktopNotification,
+    reduceVisualEffects,
+    showBrowserTitleTimer,
+    soundAlert,
+    updateActiveMission,
+  } = useAppState()
   const totalSeconds = useMemo(
     () => effectiveCountdownSeconds(breakMin, demoShortSessions),
     [breakMin, demoShortSessions],
@@ -46,6 +54,12 @@ function RestStationRunner({
   const trivia = pickTrivia(restState?.completedCycle ?? 0)
 
   const finishRest = useCallback(() => {
+    notifyTimerEvent(
+      '휴식 종료',
+      restState?.nextMission ? '다음 집중 Orbit을 시작합니다.' : '미션이 완료되었습니다.',
+      { desktopNotification, soundAlert },
+    )
+
     if (restState?.nextMission) {
       updateActiveMission(restState.nextMission)
       navigate('/timer')
@@ -54,7 +68,7 @@ function RestStationRunner({
 
     updateActiveMission(null)
     navigate('/map')
-  }, [navigate, restState, updateActiveMission])
+  }, [desktopNotification, navigate, restState, soundAlert, updateActiveMission])
 
   useEffect(() => {
     if (secondsLeft <= 0) {
@@ -70,11 +84,16 @@ function RestStationRunner({
   }, [finishRest, secondsLeft])
 
   useEffect(() => {
+    if (!showBrowserTitleTimer) {
+      document.title = 'Focus Orbit'
+      return
+    }
+
     document.title = `${formatClock(secondsLeft)} | Rest Station`
     return () => {
       document.title = 'Focus Orbit'
     }
-  }, [secondsLeft])
+  }, [secondsLeft, showBrowserTitleTimer])
 
   return (
     <section className="page rest-page">
@@ -87,7 +106,7 @@ function RestStationRunner({
         </p>
       </header>
 
-      <div className="rest-card">
+      <div className={`rest-card${reduceVisualEffects ? ' reduced-effects' : ''}`}>
         <span className="station-ring" aria-hidden />
         <div className="timer-readout">
           <span>

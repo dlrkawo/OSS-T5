@@ -40,11 +40,12 @@ docker compose up --build
 - `GET /api/sessions`
 - `GET /api/recommendations?taskType=coding`
 - `GET /api/stats`
-- 잘못된 `taskType` 요청의 HTTP 400 처리
+- 커스텀 `taskType` 세션 저장과 추천 응답
 
 ## 4. FE 인수인계 포인트
 
-- `taskType`과 `outcome`은 FE에서 소문자로 보내도 정상 처리됩니다.
+- `taskType`은 FE에서 저장한 커스텀 작업 ID나 작업 이름을 그대로 보낼 수 있습니다.
+- `outcome`은 FE에서 소문자로 보내도 정상 처리됩니다.
 - `userId`를 생략하면 서버는 `demo-user`를 기본값으로 사용합니다.
 - 세션 저장 후 `GET /api/sessions`, `GET /api/stats`, `GET /api/recommendations`를 다시 호출하면 화면 갱신에 필요한 데이터를 받을 수 있습니다.
 - smoke check는 매번 새 세션을 저장하므로 데모 DB에 기록이 누적됩니다. 깨끗한 검증이 필요하면 `server/data/`를 비우고 다시 실행합니다.

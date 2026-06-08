@@ -24,6 +24,7 @@ export function MissionLog() {
           <span>별 이름</span>
           <span>유형</span>
           <span>Orbit</span>
+          <span>휴식</span>
           <span>결과</span>
           <span>시간</span>
         </div>
@@ -34,6 +35,13 @@ export function MissionLog() {
             <span>{getTaskMeta(session.taskType).labelKo}</span>
             <span>
               {session.cycleIndex}/{session.totalCycles}
+            </span>
+            <span>
+              {session.outcome === 'completed'
+                ? session.isLongBreak
+                  ? '긴 휴식'
+                  : '짧은 휴식'
+                : '없음'}
             </span>
             <span className={session.outcome === 'completed' ? 'success-text' : 'danger-text'}>
               {session.outcome === 'completed' ? '완료' : '중단'}
