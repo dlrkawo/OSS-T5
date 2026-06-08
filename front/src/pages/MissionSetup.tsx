@@ -1,6 +1,10 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { MissionPreset } from '../domain/types'
+import {
+  fetchRecommendation,
+  type ApiRecommendation,
+} from '../services/api'
 import { useAppState } from '../state/AppStateContext'
 
 const DEFAULT_FOCUS_MIN = 25
@@ -15,6 +19,36 @@ export function MissionSetup() {
   const [focusMin, setFocusMin] = useState(DEFAULT_FOCUS_MIN)
   const [breakMin, setBreakMin] = useState(DEFAULT_BREAK_MIN)
   const [totalCycles, setTotalCycles] = useState(4)
+  const [recommendation, setRecommendation] = useState<ApiRecommendation | null>(null)
+  const [recommendationError, setRecommendationError] = useState(false)
+
+  const selectedTaskType = selectedPreset?.id
+  const isRecommendationApplied =
+    recommendation !== null &&
+    focusMin === recommendation.focusMinutes &&
+    breakMin === recommendation.breakMinutes
+
+  useEffect(() => {
+    if (!selectedTaskType || isCreating) {
+      return
+    }
+
+    let cancelled = false
+
+    void fetchRecommendation(selectedTaskType)
+      .then((nextRecommendation) => {
+        if (!cancelled) setRecommendation(nextRecommendation)
+      })
+      .catch(() => {
+        if (cancelled) return
+        setRecommendation(null)
+        setRecommendationError(true)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [isCreating, selectedTaskType])
 
   const openCreateForm = () => {
     setSelectedPreset(null)
@@ -22,6 +56,8 @@ export function MissionSetup() {
     setTaskName('')
     setFocusMin(DEFAULT_FOCUS_MIN)
     setBreakMin(DEFAULT_BREAK_MIN)
+    setRecommendation(null)
+    setRecommendationError(false)
   }
 
   const selectPreset = (preset: MissionPreset) => {
@@ -30,6 +66,8 @@ export function MissionSetup() {
     setTaskName(preset.name)
     setFocusMin(preset.focusMin)
     setBreakMin(preset.breakMin)
+    setRecommendation(null)
+    setRecommendationError(false)
   }
 
   const handleSave = (event: FormEvent<HTMLFormElement>) => {
@@ -53,12 +91,18 @@ export function MissionSetup() {
       cycleId: crypto.randomUUID(),
       taskName: selectedPreset.name,
       taskType: selectedPreset.id,
-      plannedFocusMin: selectedPreset.focusMin,
-      plannedBreakMin: selectedPreset.breakMin,
+      plannedFocusMin: focusMin,
+      plannedBreakMin: breakMin,
       totalCycles,
       currentCycle: 1,
     })
     navigate('/timer')
+  }
+
+  const handleApplyRecommendation = () => {
+    if (!recommendation) return
+    setFocusMin(recommendation.focusMinutes)
+    setBreakMin(recommendation.breakMinutes)
   }
 
   return (
@@ -182,6 +226,57 @@ export function MissionSetup() {
                 : `총 ${totalCycles}회 Orbit으로 반복 진행됩니다.`}
             </p>
           </div>
+
+          {!isCreating && (
+            <div className="recommendation-panel">
+              <div className="recommendation-header">
+                <div>
+                  <span>Adaptive routine</span>
+                  <strong>
+                    {recommendation
+                      ? `${recommendation.focusMinutes} min focus / ${recommendation.breakMinutes} min break`
+                      : recommendationError
+                        ? 'Mission Log unavailable'
+                        : 'Reading Mission Log'}
+                  </strong>
+                </div>
+                <button
+                  className="secondary-button recommendation-action"
+                  disabled={!recommendation || isRecommendationApplied}
+                  onClick={handleApplyRecommendation}
+                  type="button"
+                >
+                  {isRecommendationApplied ? 'Applied' : 'Apply'}
+                </button>
+              </div>
+
+              {recommendation ? (
+                <>
+                  <div className="recommendation-metrics">
+                    <div>
+                      <span>Score</span>
+                      <strong>{recommendation.focusScore}</strong>
+                    </div>
+                    <div>
+                      <span>Recent</span>
+                      <strong>{recommendation.recentSessionCount}</strong>
+                    </div>
+                    <div>
+                      <span>Complete</span>
+                      <strong>{Math.round(recommendation.completionRate * 100)}%</strong>
+                    </div>
+                  </div>
+                  <p className="recommendation-reason">{recommendation.reasons.at(-1)}</p>
+                </>
+              ) : (
+                <p className="recommendation-reason">
+                  {recommendationError
+                    ? 'Backend recommendation is offline, so the saved rhythm stays selected.'
+                    : 'Select a mission to load recent-session guidance.'}
+                </p>
+              )}
+            </div>
+          )}
 
           {isCreating ? (
             <button className="primary-button" disabled={!taskName.trim()} type="submit">
