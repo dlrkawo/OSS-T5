@@ -44,6 +44,7 @@ cd OSS-T5
 FE 실행:
 
 ```bash
+cd front
 yarn
 yarn dev
 ```
@@ -51,6 +52,7 @@ yarn dev
 FE 빌드와 린트:
 
 ```bash
+cd front
 yarn build
 yarn lint
 ```
@@ -206,17 +208,23 @@ Focus Orbit에서 adaptiveness는 사용자의 작업 상황과 집중 기록에
 
 ```txt
 OSS-T5/
-├── src/                    # FE React 코드
-│   ├── api/                # BE API 요청 함수
-│   ├── components/         # 공통 UI 컴포넌트
-│   ├── domain/             # 타이머, 추천, 세션 관련 FE 도메인 로직
-│   ├── hooks/              # 커스텀 훅
-│   ├── layout/             # 공통 레이아웃
-│   ├── pages/              # 페이지 컴포넌트
-│   ├── state/              # FE 전역 상태
-│   ├── App.tsx
-│   ├── main.tsx
-│   └── index.css
+├── front/                  # FE React 앱
+│   ├── public/             # 정적 파일
+│   ├── src/                # FE React 코드
+│   │   ├── api/            # BE API 요청 함수
+│   │   ├── components/     # 공통 UI 컴포넌트
+│   │   ├── domain/         # 타이머, 추천, 세션 관련 FE 도메인 로직
+│   │   ├── hooks/          # 커스텀 훅
+│   │   ├── layout/         # 공통 레이아웃
+│   │   ├── pages/          # 페이지 컴포넌트
+│   │   ├── state/          # FE 전역 상태
+│   │   ├── App.tsx
+│   │   ├── main.tsx
+│   │   └── index.css
+│   ├── package.json        # FE 실행용 package.json
+│   ├── vite.config.ts
+│   ├── tsconfig.json
+│   └── yarn.lock
 │
 ├── server/                 # BE 서버 코드
 │   ├── build.gradle
@@ -233,13 +241,8 @@ OSS-T5/
 │
 ├── docker-compose.yml      # BE Docker 실행
 ├── .env.example            # BE 환경 변수 예시
-├── public/                 # 정적 파일
 ├── README.md               # 프로젝트 소개, 실행 방법, 역할 분담
-├── FEATURES.md             # 기능 상세 정리, 필요 시 유지
-├── package.json            # FE 실행용 package.json
-├── vite.config.ts
-├── tsconfig.json
-└── yarn.lock
+└── FEATURES.md             # 기능 상세 정리, 필요 시 유지
 ```
 
 ## 역할 분담
@@ -277,20 +280,20 @@ userId: "demo-user"
 아래 파일은 충돌 가능성이 높으므로 수정 전에 팀 채팅에 먼저 공유합니다.
 
 ```txt
-src/pages/MissionSetup.tsx
-src/pages/ActiveTimer.tsx
-src/pages/RestStation.tsx
-src/pages/MissionLog.tsx
-src/pages/SettingsPage.tsx
-src/state/*
-src/domain/*
+front/src/pages/MissionSetup.tsx
+front/src/pages/ActiveTimer.tsx
+front/src/pages/RestStation.tsx
+front/src/pages/MissionLog.tsx
+front/src/pages/SettingsPage.tsx
+front/src/state/*
+front/src/domain/*
 server/src/db/*
 server/src/models/*
 server/src/services/*
 docs/api-spec.md
 README.md
 FEATURES.md
-package.json
+front/package.json
 server/build.gradle
 ```
 
