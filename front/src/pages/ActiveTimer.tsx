@@ -148,7 +148,7 @@ function ActiveTimerRunner({ mission }: { mission: ActiveMission }) {
         }`}
       >
         <header className="timer-header">
-          <p className="eyebrow">Active Timer</p>
+          <p className="eyebrow">집중 타이머</p>
           <div className="timer-header-actions">
             <button
               aria-pressed={minimalMode}
@@ -156,7 +156,7 @@ function ActiveTimerRunner({ mission }: { mission: ActiveMission }) {
               onClick={() => setMinimalMode(!minimalMode)}
               type="button"
             >
-              Minimal {minimalMode ? 'ON' : 'OFF'}
+              미니멀 {minimalMode ? '켜짐' : '꺼짐'}
             </button>
             <button
               aria-pressed={reduceVisualEffects}
@@ -164,7 +164,7 @@ function ActiveTimerRunner({ mission }: { mission: ActiveMission }) {
               onClick={() => setReduceVisualEffects(!reduceVisualEffects)}
               type="button"
             >
-              Reduce FX {reduceVisualEffects ? 'ON' : 'OFF'}
+              효과 줄이기 {reduceVisualEffects ? '켜짐' : '꺼짐'}
             </button>
             <div className="orbit-status">
               Orbit {mission.currentCycle}/{mission.totalCycles}
@@ -184,7 +184,7 @@ function ActiveTimerRunner({ mission }: { mission: ActiveMission }) {
               <span>현재 Orbit</span>
               <strong>{progressPercent}%</strong>
             </div>
-            <div className="progress-track" aria-label="Mission progress">
+            <div className="progress-track" aria-label="현재 Orbit 진행률">
               <span className="progress-bar" style={{ width: `${progressPercent}%` }} />
             </div>
           </div>
@@ -194,7 +194,7 @@ function ActiveTimerRunner({ mission }: { mission: ActiveMission }) {
               <span>전체 미션</span>
               <strong>{totalProgressPercent}%</strong>
             </div>
-            <div className="progress-track total-progress-track" aria-label="Total mission progress">
+            <div className="progress-track total-progress-track" aria-label="전체 미션 진행률">
               <span
                 className="progress-bar total-progress-bar"
                 style={{ width: `${totalProgressPercent}%` }}
@@ -213,7 +213,7 @@ function ActiveTimerRunner({ mission }: { mission: ActiveMission }) {
             title={isPaused ? '재개' : '일시정지'}
             type="button"
           >
-            <span aria-hidden>{isPaused ? '▶' : 'Ⅱ'}</span>
+            <span aria-hidden>{isPaused ? '▶' : '⏸'}</span>
           </button>
           <button
             aria-label="완료 처리"
@@ -225,15 +225,18 @@ function ActiveTimerRunner({ mission }: { mission: ActiveMission }) {
             <span aria-hidden>✓</span>
           </button>
           <button
-            aria-label="중단"
+            aria-label="미션 중단"
             className="danger-button icon-button"
             onClick={handleAbort}
-            title="중단"
+            title="미션 중단"
             type="button"
           >
             <span aria-hidden>×</span>
           </button>
         </div>
+        <p className="control-note">
+          중단하면 현재 집중은 중단 기록으로 저장되고 다음 추천 루틴에 반영됩니다.
+        </p>
       </div>
     </section>
   )
