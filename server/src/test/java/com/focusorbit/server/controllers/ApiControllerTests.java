@@ -89,6 +89,22 @@ class ApiControllerTests {
 	}
 
 	@Test
+	void adjustsRecommendationFromRecentMissionLog() throws Exception {
+		createSession("aborted", 3);
+		createSession("aborted", 4);
+		createSession("completed", 1);
+
+		mockMvc.perform(get("/api/recommendations").param("taskType", "coding"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.taskType").value("coding"))
+			.andExpect(jsonPath("$.focusMinutes").value(35))
+			.andExpect(jsonPath("$.breakMinutes").value(15))
+			.andExpect(jsonPath("$.recentSessionCount").value(3))
+			.andExpect(jsonPath("$.completionRate").value(0.33))
+			.andExpect(jsonPath("$.averagePauseCount").value(2.67));
+	}
+
+	@Test
 	void getsAndPatchesSettings() throws Exception {
 		mockMvc.perform(get("/api/settings"))
 			.andExpect(status().isOk())
