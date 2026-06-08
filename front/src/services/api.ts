@@ -14,6 +14,18 @@ export interface ApiSettings {
   showTimerInTitle: boolean
 }
 
+export interface ApiRecommendation {
+  userId: string
+  taskType: string
+  focusMinutes: number
+  breakMinutes: number
+  focusScore: number
+  recentSessionCount: number
+  completionRate: number
+  averagePauseCount: number
+  reasons: string[]
+}
+
 interface ApiSession {
   id: number
   taskName: string
@@ -75,6 +87,12 @@ export function patchSettings(settings: Partial<ApiSettings>): Promise<ApiSettin
 export function fetchSessions(): Promise<SessionRecord[]> {
   return request<ApiSession[]>(`/sessions?userId=${encodeURIComponent(USER_ID)}`).then((sessions) =>
     sessions.map(toSessionRecord),
+  )
+}
+
+export function fetchRecommendation(taskType: string): Promise<ApiRecommendation> {
+  return request<ApiRecommendation>(
+    `/recommendations?userId=${encodeURIComponent(USER_ID)}&taskType=${encodeURIComponent(taskType)}`,
   )
 }
 

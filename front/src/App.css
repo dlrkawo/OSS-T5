@@ -1,7 +1,10 @@
 .app-shell {
+  width: 100%;
+  max-width: 100vw;
   display: grid;
   grid-template-columns: 248px minmax(0, 1fr);
   min-height: 100vh;
+  overflow-x: hidden;
   color: var(--text-primary);
   background:
     radial-gradient(circle at 80% 12%, rgba(103, 232, 249, 0.16), transparent 28%),
@@ -61,6 +64,8 @@
 
 .app-content {
   min-width: 0;
+  width: 100%;
+  overflow-x: clip;
 }
 
 .app-content:has(.timer-page) {
@@ -72,6 +77,7 @@
 
 .page {
   width: 100%;
+  max-width: 100%;
   min-height: 100vh;
   margin: 0;
   padding: 34px clamp(18px, 4vw, 48px) 44px;
@@ -317,6 +323,69 @@ h2 {
   background: rgba(52, 211, 153, 0.08);
 }
 
+.recommendation-panel {
+  display: grid;
+  gap: 12px;
+  margin: 18px 0;
+  padding-top: 16px;
+  border-top: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.recommendation-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.recommendation-header span,
+.recommendation-metrics span {
+  display: block;
+  color: var(--accent-cyan);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.recommendation-header strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 17px;
+}
+
+.recommendation-action {
+  min-width: 92px;
+  white-space: nowrap;
+}
+
+.recommendation-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.recommendation-metrics > div {
+  min-height: 70px;
+  padding: 12px;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.52);
+}
+
+.recommendation-metrics strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--text-primary);
+  font-size: 22px;
+}
+
+.recommendation-reason {
+  min-height: 24px;
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
 .mission-preview span,
 .timer-readout span,
 .map-summary span {
@@ -351,6 +420,12 @@ button {
   border: 0;
   background: var(--accent-cyan);
   color: #02111b;
+}
+
+.primary-button:disabled,
+.secondary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
 }
 
 .primary-button.compact {
@@ -855,7 +930,12 @@ button {
   }
 
   .form-grid,
-  .map-summary {
+  .map-summary,
+  .recommendation-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .recommendation-header {
     grid-template-columns: 1fr;
   }
 
