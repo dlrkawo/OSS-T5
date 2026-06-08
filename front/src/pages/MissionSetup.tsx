@@ -34,7 +34,7 @@ function recommendationReasonKo(reason?: string): string {
 
 export function MissionSetup() {
   const navigate = useNavigate()
-  const { addMissionPreset, missionPresets, startMission } = useAppState()
+  const { addMissionPreset, deleteMissionPreset, missionPresets, startMission } = useAppState()
   const [selectedPreset, setSelectedPreset] = useState<MissionPreset | null>(null)
   const [isCreating, setIsCreating] = useState(missionPresets.length === 0)
   const [taskName, setTaskName] = useState('')
@@ -90,6 +90,11 @@ export function MissionSetup() {
     setBreakMin(preset.breakMin)
     setRecommendation(null)
     setRecommendationError(false)
+  }
+
+  const handleDeletePreset = (preset: MissionPreset) => {
+    deleteMissionPreset(preset.id)
+    if (selectedPreset?.id === preset.id) openCreateForm()
   }
 
   const handleSave = (event: FormEvent<HTMLFormElement>) => {
@@ -159,18 +164,31 @@ export function MissionSetup() {
 
           <div className="task-grid">
             {missionPresets.map((preset) => (
-              <button
+              <div
                 className={`task-option${selectedPreset?.id === preset.id ? ' selected' : ''}`}
                 key={preset.id}
-                onClick={() => selectPreset(preset)}
-                type="button"
               >
-                <strong>{preset.name}</strong>
-                <span>사용자 설정 미션</span>
-                <small>
-                  {preset.focusMin}분 집중 / {preset.breakMin}분 휴식
-                </small>
-              </button>
+                <button
+                  className="task-select"
+                  onClick={() => selectPreset(preset)}
+                  type="button"
+                >
+                  <strong>{preset.name}</strong>
+                  <span>사용자 설정 미션</span>
+                  <small>
+                    {preset.focusMin}분 집중 / {preset.breakMin}분 휴식
+                  </small>
+                </button>
+                <button
+                  aria-label={`${preset.name} 삭제`}
+                  className="task-delete-button"
+                  onClick={() => handleDeletePreset(preset)}
+                  title="저장된 작업 삭제"
+                  type="button"
+                >
+                  삭제
+                </button>
+              </div>
             ))}
           </div>
         </div>

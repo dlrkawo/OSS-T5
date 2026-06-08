@@ -34,6 +34,7 @@ interface AppStateValue {
   soundAlert: boolean
   activeMission: ActiveMission | null
   addMissionPreset: (preset: Omit<MissionPreset, 'id' | 'createdAt'>) => MissionPreset
+  deleteMissionPreset: (presetId: string) => void
   setDesktopNotification: (value: boolean) => void
   setDemoShortSessions: (value: boolean) => void
   setMinimalMode: (value: boolean) => void
@@ -148,6 +149,13 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     },
     [],
   )
+
+  const deleteMissionPreset = useCallback((presetId: string) => {
+    setPersisted((previous) => ({
+      ...previous,
+      missionPresets: previous.missionPresets.filter((preset) => preset.id !== presetId),
+    }))
+  }, [])
 
   const syncSettings = useCallback((settings: Partial<ApiSettings>) => {
     void patchSettings(settings).catch(() => undefined)
@@ -268,6 +276,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       soundAlert: true,
       activeMission,
       addMissionPreset,
+      deleteMissionPreset,
       setDesktopNotification,
       setDemoShortSessions,
       setMinimalMode,
@@ -283,6 +292,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     [
       activeMission,
       addMissionPreset,
+      deleteMissionPreset,
       persisted.demoShortSessions,
       persisted.missionPresets,
       persisted.minimalMode,
