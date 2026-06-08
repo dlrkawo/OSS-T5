@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getTaskMeta } from '../domain/taskTypes'
+import { SpaceOrbitScene } from '../components/SpaceOrbitScene'
+import { notifyTimerEvent } from '../domain/alerts'
 import { effectiveCountdownSeconds, formatClock } from '../domain/timerUtils'
 import type { ActiveMission } from '../domain/types'
 import { useAppState } from '../state/AppStateContext'
@@ -34,8 +35,15 @@ function ActiveTimerRunner({ mission }: { mission: ActiveMission }) {
   const navigate = useNavigate()
   const {
     demoShortSessions,
+    desktopNotification,
+    minimalMode,
+    reduceVisualEffects,
     recordAbortedFocus,
     recordCompletedFocus,
+    setMinimalMode,
+    setReduceVisualEffects,
+    showBrowserTitleTimer,
+    soundAlert,
     updateActiveMission,
   } = useAppState()
   const totalSeconds = useMemo(
@@ -47,30 +55,45 @@ function ActiveTimerRunner({ mission }: { mission: ActiveMission }) {
   const [pauseCount, setPauseCount] = useState(0)
 
   const completeFocus = useCallback(() => {
-    recordCompletedFocus(mission, pauseCount)
     const isFinalCycle = mission.currentCycle >= mission.totalCycles
+    const isLongBreak = isFinalCycle || mission.currentCycle % 4 === 0
+    recordCompletedFocus(mission, pauseCount, isLongBreak)
     const nextMission = isFinalCycle
       ? null
       : {
           ...mission,
           currentCycle: mission.currentCycle + 1,
         }
-    const breakMin = isFinalCycle
+    const breakMin = isLongBreak
       ? Math.max(15, mission.plannedBreakMin * 3)
       : mission.plannedBreakMin
+
+    notifyTimerEvent(
+      '집중 세션 완료',
+      isLongBreak ? '긴 휴식 정거장으로 이동합니다.' : '짧은 휴식 후 다음 Orbit이 이어집니다.',
+      { desktopNotification, soundAlert },
+    )
 
     updateActiveMission(null)
     navigate('/rest', {
       state: {
         breakMin,
-        isLongBreak: isFinalCycle,
+        isLongBreak,
         nextMission,
         taskName: mission.taskName,
         totalCycles: mission.totalCycles,
         completedCycle: mission.currentCycle,
       },
     })
-  }, [mission, navigate, pauseCount, recordCompletedFocus, updateActiveMission])
+  }, [
+    desktopNotification,
+    mission,
+    navigate,
+    pauseCount,
+    recordCompletedFocus,
+    soundAlert,
+    updateActiveMission,
+  ])
 
   useEffect(() => {
     if (isPaused) return
@@ -87,15 +110,22 @@ function ActiveTimerRunner({ mission }: { mission: ActiveMission }) {
   }, [completeFocus, isPaused, secondsLeft])
 
   useEffect(() => {
+    if (!showBrowserTitleTimer) {
+      document.title = 'Focus Orbit'
+      return
+    }
+
     document.title = `${formatClock(secondsLeft)} | ${mission.taskName}`
     return () => {
       document.title = 'Focus Orbit'
     }
-  }, [mission.taskName, secondsLeft])
+  }, [mission.taskName, secondsLeft, showBrowserTitleTimer])
 
-  const meta = getTaskMeta(mission.taskType)
   const progress = totalSeconds > 0 ? 1 - secondsLeft / totalSeconds : 0
   const progressPercent = Math.round(progress * 100)
+  const totalProgressPercent = Math.round(
+    ((mission.currentCycle - 1 + progress) / mission.totalCycles) * 100,
+  )
 
   const handlePause = () => {
     setIsPaused((current) => {
@@ -112,47 +142,96 @@ function ActiveTimerRunner({ mission }: { mission: ActiveMission }) {
 
   return (
     <section className="page timer-page">
-      <header className="timer-header">
-        <div>
+      <div
+        className={`timer-board${minimalMode ? ' minimal' : ''}${
+          reduceVisualEffects ? ' reduced-effects' : ''
+        }`}
+      >
+        <header className="timer-header">
           <p className="eyebrow">Active Timer</p>
-          <h1>{mission.taskName}</h1>
-        </div>
-        <div className="orbit-status">
-          Orbit {mission.currentCycle}/{mission.totalCycles}
-        </div>
-      </header>
+          <div className="timer-header-actions">
+            <button
+              aria-pressed={minimalMode}
+              className={`mode-toggle${minimalMode ? ' active' : ''}`}
+              onClick={() => setMinimalMode(!minimalMode)}
+              type="button"
+            >
+              Minimal {minimalMode ? 'ON' : 'OFF'}
+            </button>
+            <button
+              aria-pressed={reduceVisualEffects}
+              className={`mode-toggle${reduceVisualEffects ? ' active' : ''}`}
+              onClick={() => setReduceVisualEffects(!reduceVisualEffects)}
+              type="button"
+            >
+              Reduce FX {reduceVisualEffects ? 'ON' : 'OFF'}
+            </button>
+            <div className="orbit-status">
+              Orbit {mission.currentCycle}/{mission.totalCycles}
+            </div>
+          </div>
+        </header>
 
-      <div className="timer-board">
-        <div className="space-route" aria-hidden>
-          <span className="route-line" />
-          <span className="route-star route-star-start" />
-          <span className="target-star" />
-          <span className="nebula nebula-left" />
-          <span className="nebula nebula-right" />
-          <span className="route-ship" style={{ left: `calc(10% + ${progress * 72}%)` }} />
-        </div>
+        {!minimalMode && <SpaceOrbitScene progress={progress} reduceMotion={reduceVisualEffects} />}
 
         <div className="timer-readout">
-          <span>{meta.missionLabel}</span>
           <strong>{formatClock(secondsLeft)}</strong>
-          <p>
-            {progressPercent}% 항로 진행 중 · 일시정지 {pauseCount}회
-          </p>
         </div>
 
-        <div className="progress-track" aria-label="Mission progress">
-          <span className="progress-bar" style={{ width: `${progressPercent}%` }} />
+        <div className="timer-progress-panel">
+          <div className="progress-unit">
+            <div className="progress-meta">
+              <span>현재 Orbit</span>
+              <strong>{progressPercent}%</strong>
+            </div>
+            <div className="progress-track" aria-label="Mission progress">
+              <span className="progress-bar" style={{ width: `${progressPercent}%` }} />
+            </div>
+          </div>
+
+          <div className="progress-unit">
+            <div className="progress-meta">
+              <span>전체 미션</span>
+              <strong>{totalProgressPercent}%</strong>
+            </div>
+            <div className="progress-track total-progress-track" aria-label="Total mission progress">
+              <span
+                className="progress-bar total-progress-bar"
+                style={{ width: `${totalProgressPercent}%` }}
+              />
+            </div>
+          </div>
+
+          <div className="pause-telemetry">일시정지 {pauseCount}회</div>
         </div>
 
         <div className="control-row">
-          <button className="secondary-button" onClick={handlePause} type="button">
-            {isPaused ? '재개' : '일시정지'}
+          <button
+            aria-label={isPaused ? '재개' : '일시정지'}
+            className="secondary-button icon-button"
+            onClick={handlePause}
+            title={isPaused ? '재개' : '일시정지'}
+            type="button"
+          >
+            <span aria-hidden>{isPaused ? '▶' : 'Ⅱ'}</span>
           </button>
-          <button className="primary-button compact" onClick={completeFocus} type="button">
-            완료 처리
+          <button
+            aria-label="완료 처리"
+            className="primary-button compact icon-button"
+            onClick={completeFocus}
+            title="완료 처리"
+            type="button"
+          >
+            <span aria-hidden>✓</span>
           </button>
-          <button className="danger-button" onClick={handleAbort} type="button">
-            중단
+          <button
+            aria-label="중단"
+            className="danger-button icon-button"
+            onClick={handleAbort}
+            title="중단"
+            type="button"
+          >
+            <span aria-hidden>×</span>
           </button>
         </div>
       </div>

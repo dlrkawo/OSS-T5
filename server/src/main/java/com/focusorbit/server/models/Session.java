@@ -4,8 +4,6 @@ import java.time.Instant;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -33,9 +31,8 @@ public class Session {
 	@Column(nullable = false)
 	private String taskName;
 
-	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
-	private TaskType taskType;
+	private String taskType;
 
 	@Column(nullable = false)
 	private int plannedFocusMinutes;
@@ -73,7 +70,7 @@ public class Session {
 	public Session(
 		String userId,
 		String taskName,
-		TaskType taskType,
+		String taskType,
 		int plannedFocusMinutes,
 		int plannedBreakMinutes,
 		SessionOutcome outcome,
@@ -115,11 +112,11 @@ public class Session {
 		this.taskName = taskName;
 	}
 
-	public TaskType getTaskType() {
+	public String getTaskType() {
 		return taskType;
 	}
 
-	public void setTaskType(TaskType taskType) {
+	public void setTaskType(String taskType) {
 		this.taskType = taskType;
 	}
 

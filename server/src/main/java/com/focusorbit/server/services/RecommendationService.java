@@ -10,18 +10,18 @@ import com.focusorbit.server.db.DemoUser;
 import com.focusorbit.server.dto.RecommendationResponse;
 import com.focusorbit.server.models.Session;
 import com.focusorbit.server.models.SessionOutcome;
-import com.focusorbit.server.models.TaskType;
 import com.focusorbit.server.repositories.SessionRepository;
 
 @Service
 public class RecommendationService {
 
-	private static final Map<TaskType, TimerPreset> BASE_PRESETS = Map.of(
-		TaskType.CODING, new TimerPreset(40, 10),
-		TaskType.MEMORIZATION, new TimerPreset(25, 5),
-		TaskType.WRITING, new TimerPreset(45, 10),
-		TaskType.EXAM, new TimerPreset(30, 5)
+	private static final Map<String, TimerPreset> BASE_PRESETS = Map.of(
+		"coding", new TimerPreset(40, 10),
+		"memorization", new TimerPreset(25, 5),
+		"writing", new TimerPreset(45, 10),
+		"exam", new TimerPreset(30, 5)
 	);
+	private static final TimerPreset CUSTOM_DEFAULT_PRESET = new TimerPreset(25, 5);
 
 	private final SessionRepository sessionRepository;
 
@@ -31,12 +31,12 @@ public class RecommendationService {
 
 	public RecommendationResponse recommend(String userId, String taskTypeValue) {
 		String normalizedUserId = normalizeUserId(userId);
-		TaskType taskType = ApiValueParser.parseTaskType(taskTypeValue);
-		TimerPreset basePreset = BASE_PRESETS.get(taskType);
+		String taskType = ApiValueParser.normalizeTaskType(taskTypeValue);
 		List<Session> recentSessions = sessionRepository.findTop5ByUserIdAndTaskTypeOrderByStartedAtDesc(
 			normalizedUserId,
 			taskType
 		);
+		TimerPreset basePreset = basePresetFor(taskType, recentSessions);
 
 		long completedCount = recentSessions.stream()
 			.filter(session -> session.getOutcome() == SessionOutcome.COMPLETED)
@@ -54,7 +54,9 @@ public class RecommendationService {
 		int focusMinutes = basePreset.focusMinutes();
 		int breakMinutes = basePreset.breakMinutes();
 		List<String> reasons = new ArrayList<>();
-		reasons.add("Base preset for " + ApiValueParser.toApiValue(taskType));
+		reasons.add(BASE_PRESETS.containsKey(taskType)
+			? "Base preset for " + taskType
+			: "Custom mission preset");
 
 		if (recentSessions.isEmpty()) {
 			reasons.add("No mission log yet, so the default rhythm is used");
@@ -75,7 +77,7 @@ public class RecommendationService {
 
 		return new RecommendationResponse(
 			normalizedUserId,
-			ApiValueParser.toApiValue(taskType),
+			taskType,
 			focusMinutes,
 			breakMinutes,
 			calculateFocusScore(recentSessions.size(), completionRate, averagePauseCount),
@@ -84,6 +86,30 @@ public class RecommendationService {
 			round(averagePauseCount),
 			reasons
 		);
+	}
+
+	private static TimerPreset basePresetFor(String taskType, List<Session> recentSessions) {
+		TimerPreset preset = BASE_PRESETS.get(taskType);
+		if (preset != null) {
+			return preset;
+		}
+
+		List<Session> completedSessions = recentSessions.stream()
+			.filter(session -> session.getOutcome() == SessionOutcome.COMPLETED)
+			.toList();
+		if (completedSessions.isEmpty()) {
+			return CUSTOM_DEFAULT_PRESET;
+		}
+
+		int focusMinutes = (int) Math.round(completedSessions.stream()
+			.mapToInt(Session::getPlannedFocusMinutes)
+			.average()
+			.orElse(CUSTOM_DEFAULT_PRESET.focusMinutes()));
+		int breakMinutes = (int) Math.round(completedSessions.stream()
+			.mapToInt(Session::getPlannedBreakMinutes)
+			.average()
+			.orElse(CUSTOM_DEFAULT_PRESET.breakMinutes()));
+		return new TimerPreset(focusMinutes, breakMinutes);
 	}
 
 	private static int calculateFocusScore(int sessionCount, double completionRate, double averagePauseCount) {
