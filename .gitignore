@@ -1,5 +1,5 @@
 .env
 server/data/
-front/node_modules/
-front/dist/
-front/.vite/
+node_modules/
+dist/
+.DS_Store
