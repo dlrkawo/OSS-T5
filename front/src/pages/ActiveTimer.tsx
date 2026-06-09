@@ -128,10 +128,8 @@ function ActiveTimerRunner({ mission }: { mission: ActiveMission }) {
   )
 
   const handlePause = () => {
-    setIsPaused((current) => {
-      if (!current) setPauseCount((count) => count + 1)
-      return !current
-    })
+    if (!isPaused) setPauseCount((count) => count + 1)
+    setIsPaused((current) => !current)
   }
 
   const handleAbort = () => {
