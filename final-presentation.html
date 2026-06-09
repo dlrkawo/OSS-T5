@@ -1,0 +1,779 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Focus Orbit 최종 발표</title>
+    <style>
+      :root {
+        --bg: #eeece1;
+        --paper: #ffffff;
+        --panel: #ffffff;
+        --line: #d9d8ff;
+        --line-soft: #ebeaff;
+        --navy: #1f497d;
+        --blue: #4f81bd;
+        --accent: #5c57ff;
+        --teal: #4bacc6;
+        --red: #c0504d;
+        --green: #9bbb59;
+        --text: #202020;
+        --muted: #444444;
+        --dim: #6f6f6f;
+        --shadow: rgba(31, 73, 125, 0.14);
+        --slide-w: 1280px;
+        --slide-h: 720px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        overflow: hidden;
+        color: var(--text);
+        font-family:
+          "Malgun Gothic", Calibri, Pretendard, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        background: #f2f2f2;
+      }
+
+      body::before {
+        display: none;
+      }
+
+      .deck {
+        position: relative;
+        display: grid;
+        width: 100vw;
+        height: 100vh;
+        place-items: center;
+        padding: 28px;
+      }
+
+      .slide {
+        position: absolute;
+        display: none;
+        width: min(var(--slide-w), calc(100vw - 56px));
+        height: min(var(--slide-h), calc(100vh - 56px));
+        overflow: hidden;
+        padding: 54px 58px 48px;
+        border: 0;
+        background: #ffffff;
+        box-shadow: 0 18px 54px rgba(0, 0, 0, 0.12);
+      }
+
+      .slide.active {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .slide::before {
+        display: none;
+      }
+
+      .slide::after {
+        display: none;
+      }
+
+      .slide > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      .eyebrow {
+        display: none;
+        margin: 0 0 8px;
+        color: var(--accent);
+        font-size: 14px;
+        font-weight: 800;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        max-width: 1000px;
+        color: #404040;
+        font-size: 78px;
+        font-weight: 500;
+        line-height: 1.04;
+        letter-spacing: 0;
+      }
+
+      h2 {
+        max-width: 1120px;
+        color: #404040;
+        font-size: 62px;
+        font-weight: 500;
+        line-height: 1.12;
+        letter-spacing: 0;
+      }
+
+      h3 {
+        margin-bottom: 12px;
+        color: var(--accent);
+        font-size: 22px;
+      }
+
+      .lead {
+        max-width: 780px;
+        margin-top: 22px;
+        color: #404040;
+        font-size: 25px;
+        line-height: 1.52;
+      }
+
+      .subtitle {
+        margin-top: 22px;
+        color: #404040;
+        font-size: 28px;
+      }
+
+      .meta {
+        display: flex;
+        gap: 18px;
+        margin-top: auto;
+        color: #404040;
+        font-size: 18px;
+        font-weight: 700;
+      }
+
+      .grid {
+        display: grid;
+        gap: 42px;
+        align-items: start;
+        margin-top: 112px;
+      }
+
+      .grid.two {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .grid.three {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .card {
+        min-height: 0;
+        padding: 0 8px;
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        box-shadow: none;
+      }
+
+      .card strong {
+        display: block;
+        margin-bottom: 34px;
+        padding-bottom: 28px;
+        border-bottom: 1px solid var(--line);
+        color: var(--accent);
+        font-size: 31px;
+        font-weight: 500;
+        line-height: 1.25;
+        text-align: center;
+      }
+
+      .card p,
+      .card li {
+        color: #202020;
+        font-size: 21px;
+        line-height: 1.38;
+      }
+
+      ul,
+      ol {
+        margin: 0;
+        padding-left: 22px;
+      }
+
+      li {
+        margin: 10px 0;
+        color: #202020;
+        font-size: 30px;
+        line-height: 1.36;
+      }
+
+      li::marker {
+        color: #202020;
+      }
+
+      .large-list {
+        max-width: 1120px;
+        margin-top: 220px;
+      }
+
+      .large-list li {
+        margin: 28px 0;
+        font-size: 31px;
+        line-height: 1.25;
+      }
+
+      .flow {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 42px;
+        margin-top: 112px;
+      }
+
+      .step {
+        min-height: 0;
+        padding: 0 8px;
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        box-shadow: none;
+      }
+
+      .step .num {
+        display: inline-grid;
+        width: 46px;
+        height: 46px;
+        margin: 0 auto 22px;
+        place-items: center;
+        border: 2px solid var(--accent);
+        border-radius: 999px;
+        color: var(--accent);
+        background: #ffffff;
+        font-size: 24px;
+        font-weight: 800;
+      }
+
+      .step p {
+        padding-top: 28px;
+        border-top: 1px solid var(--line);
+        color: #202020;
+        font-size: 24px;
+        font-weight: 500;
+        line-height: 1.35;
+        text-align: center;
+      }
+
+      .quote {
+        max-width: 1040px;
+        margin-top: 160px;
+        padding: 0 10px 34px;
+        border: 0;
+        border-bottom: 1px solid var(--line);
+        background: transparent;
+        color: #202020;
+        font-size: 34px;
+        font-weight: 500;
+        line-height: 1.45;
+        box-shadow: none;
+      }
+
+      .badge-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 80px;
+      }
+
+      .badge {
+        padding: 10px 14px;
+        border: 1px solid var(--line);
+        border-radius: 0;
+        background: #ffffff;
+        color: #404040;
+        font-size: 18px;
+        font-weight: 500;
+      }
+
+      .table {
+        width: 100%;
+        margin-top: 90px;
+        border-collapse: collapse;
+        overflow: hidden;
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        box-shadow: none;
+        font-size: 22px;
+      }
+
+      .table th,
+      .table td {
+        padding: 18px 22px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+      }
+
+      .table th {
+        color: var(--accent);
+        background: transparent;
+        font-size: 25px;
+        font-weight: 500;
+      }
+
+      .table td {
+        color: #202020;
+      }
+
+      .split {
+        display: grid;
+        grid-template-columns: 0.98fr 1.02fr;
+        gap: 34px;
+        align-items: center;
+        margin-top: 96px;
+      }
+
+      .orbit-visual {
+        position: relative;
+        min-height: 330px;
+      }
+
+      .planet {
+        position: absolute;
+        right: 54px;
+        bottom: 12px;
+        width: 280px;
+        height: 280px;
+        border-radius: 999px;
+        background:
+          radial-gradient(circle at 32% 25%, rgba(75, 172, 198, 0.48), transparent 22%),
+          radial-gradient(circle at 70% 74%, rgba(155, 187, 89, 0.22), transparent 20%),
+          radial-gradient(circle, #6fa8dc 0%, #1f497d 72%);
+        box-shadow:
+          inset -42px -38px 90px rgba(31, 73, 125, 0.65),
+          0 0 80px rgba(79, 129, 189, 0.2);
+      }
+
+      .orbit-ring {
+        position: absolute;
+        right: 8px;
+        bottom: 82px;
+        width: 380px;
+        height: 130px;
+        border-top: 3px dashed rgba(31, 73, 125, 0.54);
+        border-radius: 50%;
+        transform: rotate(-8deg);
+      }
+
+      .ship {
+        position: absolute;
+        right: 236px;
+        bottom: 175px;
+        width: 58px;
+        height: 20px;
+        transform: rotate(-14deg);
+      }
+
+      .ship::before {
+        position: absolute;
+        left: 8px;
+        width: 36px;
+        height: 14px;
+        border-radius: 14px 16px 16px 14px;
+        content: "";
+        background: linear-gradient(90deg, #ffffff, var(--teal));
+      }
+
+      .ship::after {
+        position: absolute;
+        left: 0;
+        top: 4px;
+        width: 18px;
+        height: 8px;
+        border-radius: 999px;
+        content: "";
+        background: linear-gradient(90deg, #f79646, rgba(247, 150, 70, 0));
+      }
+
+      .footer {
+        position: absolute;
+        right: 28px;
+        bottom: 18px;
+        z-index: 4;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        color: #6b6b6b;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+
+      .progress {
+        width: 180px;
+        height: 4px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #e3e3e3;
+      }
+
+      .progress span {
+        display: block;
+        width: var(--progress, 0%);
+        height: 100%;
+        background: var(--accent);
+      }
+
+      .nav {
+        position: fixed;
+        left: 50%;
+        bottom: 18px;
+        z-index: 10;
+        display: flex;
+        gap: 10px;
+        transform: translateX(-50%);
+      }
+
+      .nav button {
+        width: 42px;
+        height: 34px;
+        border: 1px solid rgba(31, 73, 125, 0.22);
+        border-radius: 8px;
+        color: var(--navy);
+        background: rgba(255, 255, 255, 0.88);
+        cursor: pointer;
+        box-shadow: 0 8px 22px rgba(31, 73, 125, 0.14);
+      }
+
+      .nav button:hover {
+        color: #ffffff;
+        background: var(--blue);
+      }
+
+      .speaker-note {
+        margin-top: auto;
+        padding: 16px 18px;
+        border: 1px solid rgba(247, 150, 70, 0.36);
+        border-radius: 8px;
+        color: #7c3f16;
+        background: rgba(247, 150, 70, 0.09);
+        font-size: 17px;
+        line-height: 1.42;
+      }
+
+      @media print {
+        body {
+          overflow: visible;
+          background: var(--bg);
+        }
+
+        .deck {
+          display: block;
+          width: auto;
+          height: auto;
+          padding: 0;
+        }
+
+        .slide,
+        .slide.active {
+          position: relative;
+          display: flex;
+          width: 100vw;
+          height: 56.25vw;
+          page-break-after: always;
+        }
+
+        .nav {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="deck" aria-label="Focus Orbit 최종 발표 슬라이드">
+      <section class="slide active">
+        <p class="eyebrow">Final Presentation</p>
+        <h1>Focus Orbit</h1>
+        <p class="subtitle">나만의 적응형 뽀모도로 타이머</p>
+        <div class="badge-row">
+          <span class="badge">5조</span>
+          <span class="badge">이감재</span>
+          <span class="badge">김성원</span>
+          <span class="badge">박찬건</span>
+          <span class="badge">엄태용</span>
+          <span class="badge">한승준</span>
+        </div>
+        <div class="meta">
+          <span>오픈소스SW기초</span>
+          <span>고동현</span>
+        </div>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Agenda</p>
+        <h2>발표 흐름</h2>
+        <div class="grid two">
+          <div class="card"><strong>1. 배경과 동기</strong><p>고정형 뽀모도로의 한계와 개인화 필요성</p></div>
+          <div class="card"><strong>2. 적응성 설명</strong><p>참고자료 기반으로 정의한 Focus Orbit의 적응성</p></div>
+          <div class="card"><strong>3. 컨셉과 기능</strong><p>Mission, Orbit, Log, Galaxy Map 중심 기능</p></div>
+          <div class="card"><strong>4. 개발 과정</strong><p>Git 협업, 역할 분담, 구현 구조</p></div>
+          <div class="card"><strong>5. 데모 영상</strong><p>작업 생성부터 기록 확인까지의 사용자 흐름</p></div>
+          <div class="card"><strong>6. 향후 발전 방향</strong><p>추천 알고리즘, 백엔드 연동, 콘텐츠 확장</p></div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Background</p>
+        <h2>배경과 동기</h2>
+        <ul class="large-list">
+          <li>기존 뽀모도로는 보통 25분 집중, 5분 휴식이라는 고정 루틴을 사용한다.</li>
+          <li>하지만 코딩, 암기, 글쓰기, 시험공부처럼 작업마다 필요한 집중 방식이 다르다.</li>
+          <li>사용자마다 집중 성공 패턴도 다르기 때문에 같은 시간표를 모두에게 적용하기 어렵다.</li>
+          <li>Focus Orbit은 작업과 기록에 맞춰 변화하는 타이머를 목표로 한다.</li>
+        </ul>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Problem</p>
+        <h2>기존 뽀모도로의 한계</h2>
+        <div class="grid two">
+          <div class="card"><strong>고정 시간</strong><p>모든 작업에 동일한 집중/휴식 시간이 적용된다.</p></div>
+          <div class="card"><strong>단발성 흐름</strong><p>반복 세션 관리가 약하면 실제 뽀모도로 흐름이 흐려진다.</p></div>
+          <div class="card"><strong>상태 전달 부족</strong><p>사용자가 다른 화면을 보는 동안 타이머 상태를 놓치기 쉽다.</p></div>
+          <div class="card"><strong>기록 활용 부족</strong><p>완료와 중단 기록이 다음 루틴에 충분히 반영되지 않는다.</p></div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Reference</p>
+        <h2>참고자료 기반 적응성 설명</h2>
+        <ul class="large-list">
+          <li>참고자료는 특정 시간이 절대적으로 최적이라는 근거가 아니라, 고정 루틴의 한계를 설명하는 근거로 활용했다.</li>
+          <li>Pomodoro 25/5가 항상 우월하지 않다는 연구는 사용자 상태와 맥락을 고려할 필요성을 보여준다.</li>
+          <li>micro-break 연구는 짧은 휴식이 피로 감소와 활력 유지에 도움 될 수 있음을 보여준다.</li>
+          <li>따라서 Focus Orbit은 고정 시간을 강제하지 않고 Mission Log 기반 조정을 적용한다.</li>
+        </ul>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Adaptiveness</p>
+        <h2>Focus Orbit의 적응성 정의</h2>
+        <p class="quote">
+          Focus Orbit에서 적응성이란 사용자의 작업 설정과 Mission Log에 따라 집중 시간, 휴식 시간, 반복 세션 수가 조정되는 것이다.
+        </p>
+        <div class="grid three">
+          <div class="card"><strong>작업 설정</strong><p>사용자가 작업 이름과 기본 루틴을 직접 생성한다.</p></div>
+          <div class="card"><strong>기록 저장</strong><p>완료 여부, 중단, 일시정지, Orbit 정보를 저장한다.</p></div>
+          <div class="card"><strong>루틴 조정</strong><p>최근 성공 패턴을 바탕으로 다음 추천값에 반영한다.</p></div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Concept</p>
+        <h2>프로젝트 컨셉</h2>
+        <div class="split">
+          <ul class="large-list">
+            <li>하나의 작업은 하나의 Mission이 된다.</li>
+            <li>집중 시간 동안 우주선이 행성을 공전한다.</li>
+            <li>완료한 작업은 Mission Log에 저장된다.</li>
+            <li>누적 집중 기록은 Galaxy Map에 반영된다.</li>
+          </ul>
+          <div class="orbit-visual" aria-hidden="true">
+            <div class="orbit-ring"></div>
+            <div class="ship"></div>
+            <div class="planet"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Flow</p>
+        <h2>전체 기능 흐름</h2>
+        <div class="flow">
+          <div class="step"><span class="num">1</span><p>작업 추가</p></div>
+          <div class="step"><span class="num">2</span><p>작업 선택</p></div>
+          <div class="step"><span class="num">3</span><p>집중/휴식/Orbit 설정</p></div>
+          <div class="step"><span class="num">4</span><p>미션 시작</p></div>
+          <div class="step"><span class="num">5</span><p>Active Timer 진행</p></div>
+          <div class="step"><span class="num">6</span><p>Rest Station 이동</p></div>
+          <div class="step"><span class="num">7</span><p>Mission Log 저장</p></div>
+          <div class="step"><span class="num">8</span><p>Galaxy Map 반영</p></div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Feature 1</p>
+        <h2>Mission Setup</h2>
+        <div class="grid two">
+          <div class="card"><strong>사용자 작업 생성</strong><p>고정된 작업 유형 대신 사용자가 직접 작업을 추가한다.</p></div>
+          <div class="card"><strong>루틴 설정</strong><p>작업 이름, 집중 시간, 휴식 시간을 설정한다.</p></div>
+          <div class="card"><strong>저장 후 선택</strong><p>저장된 작업을 클릭하면 미션 시작이 가능하다.</p></div>
+          <div class="card"><strong>맞춤형 시작점</strong><p>초기값부터 사용자의 실제 작업 맥락을 반영한다.</p></div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Feature 2</p>
+        <h2>Session Cycle</h2>
+        <ul class="large-list">
+          <li>뽀모도로의 반복 구조를 Orbit으로 표현한다.</li>
+          <li>Orbit 1/4, Orbit 2/4처럼 현재 세션 상태를 표시한다.</li>
+          <li>집중, 휴식, 다음 집중으로 이어지는 흐름을 구현한다.</li>
+          <li>마지막 Orbit 이후에는 긴 휴식으로 전환할 수 있다.</li>
+        </ul>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Feature 3</p>
+        <h2>Active Timer</h2>
+        <div class="grid two">
+          <div class="card"><strong>우주 배경</strong><p>메인 화면 전체를 활용해 몰입형 타이머 화면을 구성했다.</p></div>
+          <div class="card"><strong>궤도 시각화</strong><p>행성, 궤도, 로켓 이동으로 시간 흐름을 표현한다.</p></div>
+          <div class="card"><strong>진행도 표시</strong><p>현재 Orbit 진행도와 전체 Mission 진행도를 함께 보여준다.</p></div>
+          <div class="card"><strong>집중 모드</strong><p>Minimal Mode와 Reduce Visual Effects로 화면 부담을 줄인다.</p></div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Feature 4</p>
+        <h2>Rest Station</h2>
+        <ul class="large-list">
+          <li>집중 세션 종료 후 휴식 단계로 이동한다.</li>
+          <li>휴식 시간을 다음 탐사를 위한 정비 시간으로 표현한다.</li>
+          <li>휴식 종료 후 다음 Orbit으로 자연스럽게 이어진다.</li>
+          <li>집중과 휴식이 하나의 세션 사이클로 연결된다.</li>
+        </ul>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Feature 5</p>
+        <h2>Mission Log & Galaxy Map</h2>
+        <div class="grid two">
+          <div class="card"><strong>Mission Log</strong><p>완료/중단된 미션의 작업 이름, 집중 시간, 휴식 시간, Orbit 정보를 저장한다.</p></div>
+          <div class="card"><strong>Galaxy Map</strong><p>완료한 작업을 별처럼 시각화하고 누적 집중 시간에 따라 행성을 해금한다.</p></div>
+          <div class="card"><strong>기록 기반 추천</strong><p>저장된 기록은 다음 루틴을 조정하는 데이터가 된다.</p></div>
+          <div class="card"><strong>성취감</strong><p>단순 통계가 아니라 우주 탐사 진행도로 집중 기록을 보여준다.</p></div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Status Delivery</p>
+        <h2>화면을 보지 않아도 알 수 있는 타이머</h2>
+        <div class="grid two">
+          <div class="card"><strong>브라우저 탭 제목</strong><p>남은 시간과 현재 상태를 탭 제목에 표시한다.</p></div>
+          <div class="card"><strong>사운드 알림</strong><p>집중/휴식 종료 시 소리로 전환 시점을 알려준다.</p></div>
+          <div class="card"><strong>데스크톱 알림</strong><p>브라우저 알림을 통해 화면 밖에서도 상태를 전달한다.</p></div>
+          <div class="card"><strong>Minimal Mode</strong><p>실제 집중 중에는 큰 타이머와 핵심 조작만 남긴다.</p></div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Development</p>
+        <h2>개발 과정</h2>
+        <ul class="large-list">
+          <li>Git 브랜치 기반으로 기능 단위 작업을 진행했다.</li>
+          <li>Frontend와 Backend 역할을 분리해 협업 구조를 잡았다.</li>
+          <li>React, TypeScript, Vite 기반으로 프론트엔드를 구현했다.</li>
+          <li>localStorage 기반으로 Mission Log와 설정 상태를 저장했다.</li>
+          <li>추후 백엔드 API 연동이 가능하도록 기능 단위를 분리했다.</li>
+        </ul>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Team</p>
+        <h2>팀원 역할</h2>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>팀원</th>
+              <th>역할</th>
+              <th>담당 내용</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>이감재</td><td>팀장 / 기획 / FE</td><td>전체 UI 방향, 주요 화면, 발표 흐름</td></tr>
+            <tr><td>김성원</td><td>FE</td><td>프론트 기능 구현 및 UI 보조</td></tr>
+            <tr><td>박찬건</td><td>BE</td><td>백엔드 구조 및 API 설계</td></tr>
+            <tr><td>엄태용</td><td>BE</td><td>데이터 처리 및 추천 로직</td></tr>
+            <tr><td>한승준</td><td>Docs / DevOps</td><td>문서, 실행 확인, 데모 및 발표 지원</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Demo</p>
+        <h2>데모 영상 흐름</h2>
+        <div class="flow">
+          <div class="step"><span class="num">1</span><p>작업 추가</p></div>
+          <div class="step"><span class="num">2</span><p>집중/휴식 시간 설정</p></div>
+          <div class="step"><span class="num">3</span><p>Orbit 수 설정</p></div>
+          <div class="step"><span class="num">4</span><p>미션 시작</p></div>
+          <div class="step"><span class="num">5</span><p>Active Timer 확인</p></div>
+          <div class="step"><span class="num">6</span><p>Rest Station 이동</p></div>
+          <div class="step"><span class="num">7</span><p>Mission Log 저장</p></div>
+          <div class="step"><span class="num">8</span><p>Galaxy Map 반영</p></div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Next Step</p>
+        <h2>향후 발전 방향</h2>
+        <ul class="large-list">
+          <li>백엔드 연동을 통한 사용자별 장기 기록 저장</li>
+          <li>Mission Log 기반 추천 알고리즘 고도화</li>
+          <li>작업별 집중 패턴 분석 및 추천 정확도 개선</li>
+          <li>알림 UX 개선과 실제 사용자 테스트</li>
+          <li>Galaxy Map 콘텐츠와 행성 해금 시스템 확장</li>
+        </ul>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Conclusion</p>
+        <h2>마무리</h2>
+        <p class="quote">
+          Focus Orbit은 고정된 25/5 타이머가 아니라, 사용자의 작업과 기록에 따라 변화하는 적응형 뽀모도로 타이머입니다.
+        </p>
+        <div class="grid three">
+          <div class="card"><strong>반복 세션</strong><p>Orbit 구조로 뽀모도로 사이클을 명확히 구현</p></div>
+          <div class="card"><strong>상태 전달</strong><p>화면 밖에서도 타이머 상태를 인지할 수 있음</p></div>
+          <div class="card"><strong>기록 기반 적응</strong><p>Mission Log로 개인화 추천의 기반 마련</p></div>
+        </div>
+      </section>
+    </main>
+
+    <div class="footer">
+      <span id="count">1 / 19</span>
+      <div class="progress" aria-hidden="true"><span id="progress"></span></div>
+      <span>Use arrow keys</span>
+    </div>
+
+    <nav class="nav" aria-label="슬라이드 이동">
+      <button type="button" id="prev" aria-label="이전 슬라이드">‹</button>
+      <button type="button" id="next" aria-label="다음 슬라이드">›</button>
+    </nav>
+
+    <script>
+      const slides = [...document.querySelectorAll(".slide")];
+      const count = document.querySelector("#count");
+      const progress = document.querySelector("#progress");
+      const prev = document.querySelector("#prev");
+      const next = document.querySelector("#next");
+      let current = 0;
+
+      function showSlide(index) {
+        current = Math.min(Math.max(index, 0), slides.length - 1);
+        slides.forEach((slide, slideIndex) => {
+          slide.classList.toggle("active", slideIndex === current);
+        });
+        count.textContent = `${current + 1} / ${slides.length}`;
+        progress.style.setProperty("--progress", `${((current + 1) / slides.length) * 100}%`);
+      }
+
+      prev.addEventListener("click", () => showSlide(current - 1));
+      next.addEventListener("click", () => showSlide(current + 1));
+      window.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowRight" || event.key === " ") showSlide(current + 1);
+        if (event.key === "ArrowLeft") showSlide(current - 1);
+        if (event.key === "Home") showSlide(0);
+        if (event.key === "End") showSlide(slides.length - 1);
+      });
+
+      showSlide(0);
+    </script>
+  </body>
+</html>
