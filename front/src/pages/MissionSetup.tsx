@@ -1,6 +1,6 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { MissionPreset } from '../domain/types'
+import type { MissionPreset, SessionRecord } from '../domain/types'
 import {
   fetchRecommendation,
   type ApiRecommendation,
@@ -9,6 +9,7 @@ import { useAppState } from '../state/AppStateContext'
 
 const DEFAULT_FOCUS_MIN = 25
 const DEFAULT_BREAK_MIN = 5
+const LOCAL_RECOMMENDATION_USER = 'local-mission-log'
 
 function recommendationReasonKo(reason?: string): string {
   if (!reason) return '최근 기록을 바탕으로 추천 루틴을 계산했습니다.'
@@ -32,9 +33,61 @@ function recommendationReasonKo(reason?: string): string {
   return reason
 }
 
+function buildLocalRecommendation(
+  preset: MissionPreset,
+  sessions: SessionRecord[],
+): ApiRecommendation {
+  const recent = sessions
+    .filter((session) => session.taskType === preset.id)
+    .sort((a, b) => b.at - a.at)
+    .slice(0, 5)
+  const completedCount = recent.filter((session) => session.outcome === 'completed').length
+  const completionRate = recent.length === 0 ? 0 : completedCount / recent.length
+  const averagePauseCount =
+    recent.length === 0
+      ? 0
+      : recent.reduce((sum, session) => sum + session.pauseCount, 0) / recent.length
+  const reasons = ['Custom mission preset']
+  let focusMinutes = preset.focusMin
+  let breakMinutes = preset.breakMin
+
+  if (recent.length === 0) {
+    reasons.push('No mission log yet, so the default rhythm is used')
+  } else if (completionRate < 0.6) {
+    focusMinutes = Math.max(15, preset.focusMin - 5)
+    breakMinutes = Math.min(30, preset.breakMin + 5)
+    reasons.push('Recent completion rate is low, so focus is shortened')
+  } else if (averagePauseCount >= 3) {
+    focusMinutes = Math.max(15, preset.focusMin - 5)
+    breakMinutes = Math.min(30, preset.breakMin + 5)
+    reasons.push('Recent pause count is high, so break time is increased')
+  } else if (completionRate >= 0.8 && averagePauseCount <= 1 && recent.length >= 3) {
+    focusMinutes = Math.min(90, preset.focusMin + 5)
+    reasons.push('Recent sessions are stable, so focus is extended slightly')
+  } else {
+    reasons.push('Recent pattern is balanced, so the base rhythm is kept')
+  }
+
+  const pausePenalty = Math.min(30, averagePauseCount * 8)
+  const focusScore =
+    recent.length === 0 ? 75 : Math.max(0, Math.min(100, Math.round(50 + completionRate * 50 - pausePenalty)))
+
+  return {
+    userId: LOCAL_RECOMMENDATION_USER,
+    taskType: preset.id,
+    focusMinutes,
+    breakMinutes,
+    focusScore,
+    recentSessionCount: recent.length,
+    completionRate: Math.round(completionRate * 100) / 100,
+    averagePauseCount: Math.round(averagePauseCount * 100) / 100,
+    reasons,
+  }
+}
+
 export function MissionSetup() {
   const navigate = useNavigate()
-  const { addMissionPreset, deleteMissionPreset, missionPresets, startMission } = useAppState()
+  const { addMissionPreset, deleteMissionPreset, missionPresets, sessions, startMission } = useAppState()
   const [selectedPreset, setSelectedPreset] = useState<MissionPreset | null>(null)
   const [isCreating, setIsCreating] = useState(missionPresets.length === 0)
   const [taskName, setTaskName] = useState('')
@@ -42,16 +95,20 @@ export function MissionSetup() {
   const [breakMin, setBreakMin] = useState(DEFAULT_BREAK_MIN)
   const [totalCycles, setTotalCycles] = useState(4)
   const [recommendation, setRecommendation] = useState<ApiRecommendation | null>(null)
-  const [recommendationError, setRecommendationError] = useState(false)
 
   const selectedTaskType = selectedPreset?.id
+  const localRecommendation = useMemo(
+    () => (selectedPreset ? buildLocalRecommendation(selectedPreset, sessions) : null),
+    [selectedPreset, sessions],
+  )
+  const activeRecommendation = recommendation ?? localRecommendation
   const isRecommendationApplied =
-    recommendation !== null &&
-    focusMin === recommendation.focusMinutes &&
-    breakMin === recommendation.breakMinutes
+    activeRecommendation !== null &&
+    focusMin === activeRecommendation.focusMinutes &&
+    breakMin === activeRecommendation.breakMinutes
 
   useEffect(() => {
-    if (!selectedTaskType || isCreating) {
+    if (!selectedPreset || !selectedTaskType || isCreating) {
       return
     }
 
@@ -59,18 +116,22 @@ export function MissionSetup() {
 
     void fetchRecommendation(selectedTaskType)
       .then((nextRecommendation) => {
-        if (!cancelled) setRecommendation(nextRecommendation)
+        if (cancelled) return
+        const shouldKeepLocalRecommendation =
+          nextRecommendation.recentSessionCount === 0 &&
+          (nextRecommendation.focusMinutes !== selectedPreset.focusMin ||
+            nextRecommendation.breakMinutes !== selectedPreset.breakMin)
+
+        setRecommendation(shouldKeepLocalRecommendation ? null : nextRecommendation)
       })
       .catch(() => {
-        if (cancelled) return
-        setRecommendation(null)
-        setRecommendationError(true)
+        if (!cancelled) setRecommendation(null)
       })
 
     return () => {
       cancelled = true
     }
-  }, [isCreating, selectedTaskType])
+  }, [isCreating, selectedPreset, selectedTaskType, sessions])
 
   const openCreateForm = () => {
     setSelectedPreset(null)
@@ -79,7 +140,6 @@ export function MissionSetup() {
     setFocusMin(DEFAULT_FOCUS_MIN)
     setBreakMin(DEFAULT_BREAK_MIN)
     setRecommendation(null)
-    setRecommendationError(false)
   }
 
   const selectPreset = (preset: MissionPreset) => {
@@ -89,7 +149,6 @@ export function MissionSetup() {
     setFocusMin(preset.focusMin)
     setBreakMin(preset.breakMin)
     setRecommendation(null)
-    setRecommendationError(false)
   }
 
   const handleDeletePreset = (preset: MissionPreset) => {
@@ -127,9 +186,9 @@ export function MissionSetup() {
   }
 
   const handleApplyRecommendation = () => {
-    if (!recommendation) return
-    setFocusMin(recommendation.focusMinutes)
-    setBreakMin(recommendation.breakMinutes)
+    if (!activeRecommendation) return
+    setFocusMin(activeRecommendation.focusMinutes)
+    setBreakMin(activeRecommendation.breakMinutes)
   }
 
   return (
@@ -273,16 +332,14 @@ export function MissionSetup() {
                 <div>
                   <span>추천 루틴</span>
                   <strong>
-                    {recommendation
-                      ? `${recommendation.focusMinutes}분 집중 / ${recommendation.breakMinutes}분 휴식`
-                      : recommendationError
-                        ? '추천을 불러올 수 없음'
-                        : '기록 확인 중'}
+                    {activeRecommendation
+                      ? `${activeRecommendation.focusMinutes}분 집중 / ${activeRecommendation.breakMinutes}분 휴식`
+                      : '기록 확인 중'}
                   </strong>
                 </div>
                 <button
                   className="secondary-button recommendation-action"
-                  disabled={!recommendation || isRecommendationApplied}
+                  disabled={!activeRecommendation || isRecommendationApplied}
                   onClick={handleApplyRecommendation}
                   type="button"
                 >
@@ -290,31 +347,29 @@ export function MissionSetup() {
                 </button>
               </div>
 
-              {recommendation ? (
+              {activeRecommendation ? (
                 <>
                   <div className="recommendation-metrics">
                     <div>
                       <span>집중 점수</span>
-                      <strong>{recommendation.focusScore}</strong>
+                      <strong>{activeRecommendation.focusScore}</strong>
                     </div>
                     <div>
                       <span>최근 기록</span>
-                      <strong>{recommendation.recentSessionCount}</strong>
+                      <strong>{activeRecommendation.recentSessionCount}</strong>
                     </div>
                     <div>
                       <span>완료율</span>
-                      <strong>{Math.round(recommendation.completionRate * 100)}%</strong>
+                      <strong>{Math.round(activeRecommendation.completionRate * 100)}%</strong>
                     </div>
                   </div>
                   <p className="recommendation-reason">
-                    {recommendationReasonKo(recommendation.reasons.at(-1))}
+                    {recommendationReasonKo(activeRecommendation.reasons.at(-1))}
                   </p>
                 </>
               ) : (
                 <p className="recommendation-reason">
-                  {recommendationError
-                    ? '추천 서버에 연결할 수 없어 저장된 루틴을 그대로 사용합니다.'
-                    : '미션을 선택하면 최근 기록을 바탕으로 추천을 불러옵니다.'}
+                  미션을 선택하면 최근 기록을 바탕으로 추천을 불러옵니다.
                 </p>
               )}
             </div>
